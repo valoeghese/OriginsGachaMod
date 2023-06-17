@@ -4,9 +4,9 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "examplemod.refmap.json",
   "mixins": [
-    "AbstractContainerMenuMixin",
-    "ArmourItemMixin",
-    "PlayerMixin"
+    "equip.AbstractContainerMenuMixin",
+    "equip.ArmourItemMixin",
+    "equip.PlayerMixin"
   ],
   "client": [
   ],

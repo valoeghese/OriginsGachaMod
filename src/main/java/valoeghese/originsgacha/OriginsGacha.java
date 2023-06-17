@@ -1,6 +1,10 @@
 package valoeghese.originsgacha;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.core.dispenser.DispenseItemBehavior;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -28,6 +32,8 @@ public class OriginsGacha
     private void setup(final FMLCommonSetupEvent event)
     {
         LOGGER.info("Initialising Origins Gacha (Common)");
+
+        DispenserBlock.registerBehavior(Items.ELYTRA, new DefaultDispenseItemBehavior());
     }
 
     private void clientSetup(final FMLClientSetupEvent event)
