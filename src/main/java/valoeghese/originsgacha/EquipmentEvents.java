@@ -5,7 +5,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import valoeghese.originsgacha.event.PlayerTryEquipEvent;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber
 public class EquipmentEvents {
 	@SubscribeEvent
 	public static void onEquip(PlayerTryEquipEvent event) {
