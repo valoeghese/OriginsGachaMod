@@ -14,7 +14,8 @@ import valoeghese.originsgacha.event.PlayerTryEquipEvent;
 public class PlayerMixin {
 	@Inject(at = @At("HEAD"), cancellable = true, method = "setItemSlot")
 	private void onSetItemSlot(EquipmentSlot pSlot, ItemStack pStack, CallbackInfo info) {
-		if (!MinecraftForge.EVENT_BUS.post(new PlayerTryEquipEvent((Player) (Object) this, pSlot, pStack))) {
+		if (MinecraftForge.EVENT_BUS.post(new PlayerTryEquipEvent((Player) (Object) this, pSlot, pStack,
+				PlayerTryEquipEvent.Reason.GENERAL))) {
 			info.cancel();
 		}
 	}

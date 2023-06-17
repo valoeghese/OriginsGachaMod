@@ -4,9 +4,10 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "examplemod.refmap.json",
   "mixins": [
+    "ArmourItemMixin",
     "PlayerMixin"
   ],
-  "client":[
+  "client": [
   ],
   "injectors": {
     "defaultRequire": 1
