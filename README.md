@@ -1,6 +1,9 @@
 # Origins Gacha Mod
 
-A mod created for a private SMP I know the members of. The name should give away the main feature.
+A mod created for a private SMP I know the members of.
+Unlock origins over time, and switch between unlocked origins. Also does a few
+extra things like disable elytra, so only people with an origin that has elytra flight ability
+can fly.
 
 # Modding Skeleton Mixin
 This code is based off of the Modding Skeleton Mixin by Tfarcenim.
