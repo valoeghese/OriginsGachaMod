@@ -20,11 +20,15 @@ public class OriginSelectScreen extends Screen {
 	public void render(PoseStack stack, int mouseX, int mouseY, float partialTick) {
 		super.render(stack, mouseX, mouseY, partialTick);
 
+		int centreX = this.width / 2;
+		int centreY = this.height / 2;
+		int size = this.height / 4;
+
 		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.QUADS)) {
-			builder.position(0, 0, 0).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
-			builder.position(0, 10, 0).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
-			builder.position(10, 10, 0).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
-			builder.position(10, 0, 0).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
+			builder.position(centreX - size, centreY - size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
+			builder.position(centreX + size, centreY - size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
+			builder.position(centreX + size, centreY + size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
+			builder.position(centreX - size, centreY + size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
 		}
 	}
 
