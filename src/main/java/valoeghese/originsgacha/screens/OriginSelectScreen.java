@@ -20,15 +20,28 @@ public class OriginSelectScreen extends Screen {
 	public void render(PoseStack stack, int mouseX, int mouseY, float partialTick) {
 		super.render(stack, mouseX, mouseY, partialTick);
 
-		int centreX = this.width / 2;
-		int centreY = this.height / 2;
-		int size = this.height / 4;
+		double centreX = this.width / 2.0;
+		double centreY = this.height / 2.0;
+		double size = this.height / 4.0;
+		final int nSegments = 20;
+		final double theta = 2.0 * Math.PI / nSegments;
 
-		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.QUADS)) {
-			builder.position(centreX - size, centreY - size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
-			builder.position(centreX + size, centreY - size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
-			builder.position(centreX + size, centreY + size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
-			builder.position(centreX - size, centreY + size).colour(0.5f, 0.5f, 0.5f, 0.5f).endVertex();
+		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.TRIANGLES)) {
+			for (int i = 0; i < nSegments; i++) {
+				double angle = theta * i;
+
+				builder.position(centreX, centreY)
+						.colour(0.5f, 0.5f, 0.5f, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + size * Math.cos(angle), centreY + size * Math.sin(angle))
+						.colour(0.5f, 0.5f, 0.5f, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + size * Math.cos(angle + theta), centreY + size * Math.sin(angle + theta))
+						.colour(0.5f, 0.5f, 0.5f, 0.5f)
+						.endVertex();
+			}
 		}
 	}
 
@@ -38,6 +51,11 @@ public class OriginSelectScreen extends Screen {
 			System.out.println("closing");
 			this.onClose();
 		}
+	}
+
+	@Override
+	public boolean isPauseScreen() {
+		return false;
 	}
 
 	/**
