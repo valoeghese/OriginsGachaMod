@@ -18,7 +18,7 @@ public abstract class AbstractContainerMenuMixin {
 		AbstractContainerMenu menu = (AbstractContainerMenu) (Object) this;
 
 		if (menu instanceof InventoryMenu iMenu) {
-			PlayerTryEquipCalls.onInventoryClick(iMenu, pPlayer, pSlotId, info);
+			PlayerTryEquipCalls.onInventoryClick(iMenu, pPlayer, pClickType, pSlotId, info);
 		}
 	}
 }

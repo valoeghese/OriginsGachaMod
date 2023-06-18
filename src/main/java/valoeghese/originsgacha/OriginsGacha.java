@@ -2,17 +2,11 @@ package valoeghese.originsgacha;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
-import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.DispenserBlock;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -26,7 +20,6 @@ public class OriginsGacha
     {
         // Register core events.
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::clientSetup);
     }
 
     private void setup(final FMLCommonSetupEvent event)
@@ -34,10 +27,5 @@ public class OriginsGacha
         LOGGER.info("Initialising Origins Gacha (Common)");
 
         DispenserBlock.registerBehavior(Items.ELYTRA, new DefaultDispenseItemBehavior());
-    }
-
-    private void clientSetup(final FMLClientSetupEvent event)
-    {
-        LOGGER.info("Initialising Origins Gacha (Client)");
     }
 }
