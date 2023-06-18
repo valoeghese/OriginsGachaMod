@@ -1,6 +1,7 @@
 package valoeghese.originsgacha.screens;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.KeyMapping;
@@ -22,8 +23,8 @@ public class OriginSelectScreen extends Screen {
 
 		double centreX = this.width / 2.0;
 		double centreY = this.height / 2.0;
-		double size = this.height / 4.0;
-		final int nSegments = 20;
+		double size = this.height / 3.0;
+		final int nSegments = 32;
 		final double theta = 2.0 * Math.PI / nSegments;
 
 		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.TRIANGLES)) {
@@ -34,11 +35,11 @@ public class OriginSelectScreen extends Screen {
 						.colour(0.5f, 0.5f, 0.5f, 0.5f)
 						.endVertex();
 
-				builder.position(centreX + size * Math.cos(angle), centreY + size * Math.sin(angle))
+				builder.position(centreX + size * Math.cos(angle + theta), centreY + size * Math.sin(angle + theta))
 						.colour(0.5f, 0.5f, 0.5f, 0.5f)
 						.endVertex();
 
-				builder.position(centreX + size * Math.cos(angle + theta), centreY + size * Math.sin(angle + theta))
+				builder.position(centreX + size * Math.cos(angle), centreY + size * Math.sin(angle))
 						.colour(0.5f, 0.5f, 0.5f, 0.5f)
 						.endVertex();
 			}
