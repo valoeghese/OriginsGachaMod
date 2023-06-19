@@ -1,5 +1,6 @@
 package valoeghese.originsgacha.impl;
 
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -17,11 +18,10 @@ public class PlayerTryEquipCalls {
 	 * Called when the player clicks in an inventory.
 	 * @param menu the menu in which the player clicked.
 	 * @param player the player.
-	 * @param pClickType
 	 * @param slotId the id of the slot clicked.
 	 * @param info the info allowing this to be cancelled.
 	 */
-	public static void onInventoryClick(InventoryMenu menu, Player player, ClickType clickType, int slotId, CallbackInfo info) {
+	public static void onInventoryClick(InventoryMenu menu, Player player, int slotId, CallbackInfo info) {
 		// Check whether this is legal.
 		if (slotId < 0) {
 			return;
@@ -43,29 +43,30 @@ public class PlayerTryEquipCalls {
 				info.cancel();
 			}
 		}
+	}
 
-		// Alternatively, any shift click of an ArmorItem or ElytraItem should trigger.
-		if (clickType == ClickType.QUICK_MOVE) {
-			// removing armour.
-			if (isEquipmentSlot) {
-				if (MinecraftForge.EVENT_BUS.post(
-						new PlayerTryEquipEvent(
-								player,
-								ItemStack.EMPTY,
-								PlayerTryEquipEvent.Reason.PLACE_IN_SLOT
-						))) {
-					info.cancel();
-				}
-			}
-			// equipping armour
-			else if (MinecraftForge.EVENT_BUS.post(
+	/**
+	 * Called on inventory quick move to potentially override the slot the item is going to.
+	 * @param player the player doing the move.
+	 * @param originalSlot the slot the item wants to go to.
+	 * @param itemStack the stack being moved.
+	 * @return the slot it should actually move to.
+	 */
+	public static EquipmentSlot onInventoryQuickMove(Player player, EquipmentSlot originalSlot, ItemStack itemStack) {
+		if (originalSlot == EquipmentSlot.HEAD || originalSlot == EquipmentSlot.CHEST
+			|| originalSlot == EquipmentSlot.LEGS || originalSlot == EquipmentSlot.FEET) {
+			if (MinecraftForge.EVENT_BUS.post(
 					new PlayerTryEquipEvent(
 							player,
-							slot.getItem(),
-							PlayerTryEquipEvent.Reason.PLACE_IN_SLOT
+							itemStack,
+							PlayerTryEquipEvent.Reason.QUICK_MOVE_ITEM
 					))) {
-				info.cancel();
+				// replace with main hand if cannot quick move.
+				return EquipmentSlot.MAINHAND;
 			}
 		}
+
+		// in most cases, just return the original slot.
+		return originalSlot;
 	}
 }

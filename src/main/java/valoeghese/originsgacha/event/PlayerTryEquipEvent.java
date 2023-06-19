@@ -62,6 +62,10 @@ public class PlayerTryEquipEvent extends PlayerEvent {
 		/**
 		 * The player is in the inventory and trying to place it in a slot.
 		 */
-		PLACE_IN_SLOT
+		PLACE_IN_SLOT,
+		/**
+		 * The player is in the inventory and trying to quick move it into a slot.
+		 */
+		QUICK_MOVE_ITEM
 	}
 }

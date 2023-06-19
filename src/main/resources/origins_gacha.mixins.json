@@ -6,6 +6,7 @@
   "mixins": [
     "equip.AbstractContainerMenuMixin",
     "equip.ArmourItemMixin",
+    "equip.InventoryMenuMixin",
     "equip.PlayerMixin"
   ],
   "client": [
