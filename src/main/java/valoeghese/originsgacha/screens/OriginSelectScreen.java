@@ -4,13 +4,15 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import io.github.apace100.origins.Origins;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
+import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.common.util.LazyOptional;
 import org.lwjgl.glfw.GLFW;
 import valoeghese.originsgacha.ClientEvents;
 import valoeghese.originsgacha.screens.util.VertexFormats;
@@ -20,8 +22,14 @@ public class OriginSelectScreen extends Screen {
 	public OriginSelectScreen() {
 		super(Component.translatable("screens.origins_gacha.select"));
 
+		Player player = Minecraft.getInstance().player;
+		assert player != null; // appease the code inspection
+		this.originContainer = player.getCapability(OriginsAPI.ORIGIN_CONTAINER);
+
 		//this.itemRenderer.renderGuiItem();
 	}
+
+	private final LazyOptional<IOriginContainer> originContainer;
 
 	private double scaleFactor = 0.05;
 	private long lastScaleTime = System.currentTimeMillis();
