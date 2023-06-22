@@ -1,6 +1,5 @@
 package valoeghese.originsgacha.screens;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -32,29 +31,10 @@ public class OriginSelectScreen extends Screen {
 		double centreX = this.width / 2.0;
 		double centreY = this.height / 2.0;
 		double size = this.scaleFactor * this.height / 2.5;
-		final int nSegments = 64;
-		final double theta = 2.0 * Math.PI / nSegments;
-		final float shade = 0.4f;
+		double innerButtonSize = size * 0.2;
+		double innerEdgeSize = size * 0.25;
 
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-
-		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.TRIANGLES)) {
-			for (int i = 0; i < nSegments; i++) {
-				double angle = theta * i;
-
-				builder.position(centreX, centreY)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				builder.position(centreX + size * Math.cos(angle + theta), centreY + size * Math.sin(angle + theta))
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				builder.position(centreX + size * Math.cos(angle), centreY + size * Math.sin(angle))
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-			}
-		}
+		this.drawCircles(centreX, centreY, size, innerButtonSize, innerEdgeSize);
 
 		RenderSystem.disableBlend();
 
@@ -71,6 +51,71 @@ public class OriginSelectScreen extends Screen {
 
 			if (this.scaleFactor > 1) {
 				this.scaleFactor = 1;
+			}
+		}
+	}
+
+	private void drawCircles(double centreX, double centreY, double size, double innerButtonSize, double innerEdgeSize) {
+		final int nSegments = 64;
+		final double theta = 2.0 * Math.PI / nSegments;
+		float shade = 0.2f;
+
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+
+		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.TRIANGLES)) {
+			// Inner Circle
+			for (int i = 0; i < nSegments; i++) {
+				double angle = theta * i;
+
+				builder.position(centreX, centreY)
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + innerButtonSize * Math.cos(angle + theta), centreY + innerButtonSize * Math.sin(angle + theta))
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + innerButtonSize * Math.cos(angle), centreY + innerButtonSize * Math.sin(angle))
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+			}
+
+			// Outer Circle
+			for (int i = 0; i < nSegments; i++) {
+				double angle = theta * i;
+
+				final double cos = Math.cos(angle);
+				final double sin = Math.sin(angle);
+				final double cosNext = Math.cos(angle + theta);
+				final double sinNext = Math.sin(angle + theta);
+
+				// 2, 1, 0
+
+				builder.position(centreX + innerEdgeSize * cos, centreY + innerEdgeSize * sin)
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + size * cosNext, centreY + size * sinNext)
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + size * cos, centreY + size * sin)
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+
+				// 3, 1, 2
+
+				builder.position(centreX + innerEdgeSize * cosNext, centreY + innerEdgeSize * sinNext)
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + size * cosNext, centreY + size * sinNext)
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
+
+				builder.position(centreX + innerEdgeSize * cos, centreY + innerEdgeSize * sin)
+						.colour(shade, shade, shade, 0.5f)
+						.endVertex();
 			}
 		}
 	}
