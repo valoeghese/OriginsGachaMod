@@ -4,6 +4,8 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import io.github.apace100.origins.Origins;
+import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -12,10 +14,13 @@ import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 import valoeghese.originsgacha.ClientEvents;
 import valoeghese.originsgacha.screens.util.VertexFormats;
+import valoeghese.originsgacha.util.Division;
 
 public class OriginSelectScreen extends Screen {
 	public OriginSelectScreen() {
 		super(Component.translatable("screens.origins_gacha.select"));
+
+		//this.itemRenderer.renderGuiItem();
 	}
 
 	private double scaleFactor = 0.05;
@@ -34,7 +39,16 @@ public class OriginSelectScreen extends Screen {
 		double innerButtonSize = size * 0.2;
 		double innerEdgeSize = size * 0.25;
 
-		this.drawCircles(centreX, centreY, size, innerButtonSize, innerEdgeSize);
+		float[] mousePosPolar = rect2polar(mouseX - (float)centreX, mouseY - (float)centreY);
+		int selectedSector = -1;
+
+		if (mousePosPolar[0] < innerButtonSize) {
+			selectedSector = 8;
+		} else if (mousePosPolar[0] >= innerEdgeSize && mousePosPolar[0] < size) {
+			selectedSector = SECTORS.get(mousePosPolar[1]);
+		}
+
+		this.drawCircles(centreX, centreY, size, innerButtonSize, innerEdgeSize, selectedSector);
 
 		RenderSystem.disableBlend();
 
@@ -55,16 +69,18 @@ public class OriginSelectScreen extends Screen {
 		}
 	}
 
-	private void drawCircles(double centreX, double centreY, double size, double innerButtonSize, double innerEdgeSize) {
-		final int nSegments = 64;
-		final double theta = 2.0 * Math.PI / nSegments;
-		float shade = 0.2f;
+	private void drawCircles(double centreX, double centreY, double size, double innerButtonSize, double innerEdgeSize,
+							 int highlightedSector) {
+		final int nSectors = 64;
+		final double theta = 2.0 * Math.PI / nSectors;
 
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
 		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.TRIANGLES)) {
+			float shade = highlightedSector == 8 ? 1 : 0.2f;
+
 			// Inner Circle
-			for (int i = 0; i < nSegments; i++) {
+			for (int i = 0; i < nSectors; i++) {
 				double angle = theta * i;
 
 				builder.position(centreX, centreY)
@@ -81,8 +97,11 @@ public class OriginSelectScreen extends Screen {
 			}
 
 			// Outer Circle
-			for (int i = 0; i < nSegments; i++) {
+			for (int i = 0; i < nSectors; i++) {
 				double angle = theta * i;
+				final int sector = SECTORS.get(angle);
+
+				shade = sector == highlightedSector ? 1 : ((sector & 1) == 0 ? 0.2f : 0.4f);
 
 				final double cos = Math.cos(angle);
 				final double sin = Math.sin(angle);
@@ -132,6 +151,17 @@ public class OriginSelectScreen extends Screen {
 		return false;
 	}
 
+	private static final Division<Integer> SECTORS = new Division<Integer>()
+			.addSection(2 * Math.PI * (6.0/8.0), 0)
+			.addSection(2 * Math.PI * (7.0/8.0), 1)
+			.addSection(2 * Math.PI * (8.0/8.0), 2)
+			.addSection(0, 2)
+			.addSection(2 * Math.PI * (1.0/8.0), 3)
+			.addSection(2 * Math.PI * (2.0/8.0), 4)
+			.addSection(2 * Math.PI * (3.0/8.0), 5)
+			.addSection(2 * Math.PI * (4.0/8.0), 6)
+			.addSection(2 * Math.PI * (5.0/8.0), 7);
+
 	/**
 	 * Check if the given key for the key mapping is down. This is preferred over .isDown() in screens due to isDown
 	 * only working is this.minecraft.screen == null.
@@ -154,5 +184,23 @@ public class OriginSelectScreen extends Screen {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Converts the given coordinates from rectangular (cartesian) to polar space.
+	 * @param x the x coordinate in cartesian coordinates.
+	 * @param y the y coordinate in cartesian coordinates.
+	 * @return a size-2 array containing [r, theta], where r is the distance from the origin, and theta is the angle
+	 * clockwise from the horizontal, in radians. If the case that r is 0, theta is also 0.
+	 */
+	private static float[] rect2polar(float x, float y) {
+		float r = (float) Math.sqrt(x * x + y * y);
+		float theta = (float) Math.atan2(y, x);
+
+		if (theta < 0) {
+			theta += 2 * Math.PI; // Adjusted to ensure theta is between 0 and 2 pi
+		}
+
+		return new float[] {r, theta};
 	}
 }
