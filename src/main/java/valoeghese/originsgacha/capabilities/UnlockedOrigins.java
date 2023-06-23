@@ -1,8 +1,12 @@
 package valoeghese.originsgacha.capabilities;
 
 import io.github.edwinmindcraft.origins.api.origin.Origin;
+import io.github.edwinmindcraft.origins.api.registry.OriginsDynamicRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -72,11 +76,33 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 	@Override
 	public CompoundTag serializeNBT() {
 		CompoundTag tag = new CompoundTag();
+
+		// Write unlocked origins
+		ListTag unlockedOriginsList = new ListTag();
+
+		for (ResourceKey<Origin> originKey : this.unlockedOrigins) {
+			unlockedOriginsList.add(StringTag.valueOf(originKey.location().toString()));
+		}
+
+		tag.put("unlockedOrigins", unlockedOriginsList);
+
 		return tag;
 	}
 
 	@Override
 	public void deserializeNBT(CompoundTag nbt) {
+		// Read Unlocked Origins
+		if (nbt.contains("unlockedOrigins", Tag.TAG_LIST)) {
+			this.unlockedOrigins.clear(); // just in case
+
+			ListTag unlockedOriginsList = nbt.getList("unlockedOrigins", Tag.TAG_STRING);
+			final int size = unlockedOriginsList.size();
+
+			for (int i = 0; i < size; i++) {
+				ResourceLocation originId = new ResourceLocation(unlockedOriginsList.getString(i));
+				this.unlockedOrigins.add(ResourceKey.create(OriginsDynamicRegistries.ORIGINS_REGISTRY, originId));
+			}
+		}
 	}
 
 	public static final ResourceLocation ID = new ResourceLocation("origins_gacha", "unlocked_origins");

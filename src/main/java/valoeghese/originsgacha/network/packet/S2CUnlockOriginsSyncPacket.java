@@ -80,4 +80,12 @@ public class S2CUnlockOriginsSyncPacket implements Packet<S2CUnlockOriginsSyncPa
 	public @Nullable NetworkDirection getDirection() {
 		return NetworkDirection.PLAY_TO_CLIENT;
 	}
+
+	@Override
+	public String toString() {
+		return "S2CUnlockOriginsSyncPacket{" +
+				"updateType=" + updateType +
+				", origins=" + origins +
+				'}';
+	}
 }

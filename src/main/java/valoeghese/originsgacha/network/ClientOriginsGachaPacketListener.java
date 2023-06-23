@@ -12,6 +12,6 @@ public class ClientOriginsGachaPacketListener {
 	private static final Logger LOGGER = LogUtils.getLogger();
 
 	public static void onUnlockedOriginsSync(S2CUnlockOriginsSyncPacket packet, NetworkEvent.Context context) {
-		System.out.println("Received Packet");
+		LOGGER.info("Received " + packet);
 	}
 }
