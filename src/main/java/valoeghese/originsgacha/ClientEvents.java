@@ -27,9 +27,11 @@ public class ClientEvents {
 
 	@SubscribeEvent
 	public static void onClientTick(final TickEvent.ClientTickEvent event) {
-		while (SELECT_ORIGIN.consumeClick()) {
-			if (!(Minecraft.getInstance().screen instanceof OriginSelectScreen)) {
-				Minecraft.getInstance().setScreen(new OriginSelectScreen());
+		if (event.phase == TickEvent.Phase.END) {
+			while (SELECT_ORIGIN.consumeClick()) {
+				if (!(Minecraft.getInstance().screen instanceof OriginSelectScreen)) {
+					Minecraft.getInstance().setScreen(new OriginSelectScreen());
+				}
 			}
 		}
 	}

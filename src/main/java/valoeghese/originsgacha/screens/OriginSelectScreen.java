@@ -4,15 +4,23 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import io.github.apace100.origins.origin.OriginLayers;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
+import io.github.edwinmindcraft.origins.api.origin.Origin;
+import io.github.edwinmindcraft.origins.api.origin.OriginLayer;
+import io.github.edwinmindcraft.origins.api.registry.OriginsDynamicRegistries;
+import io.github.edwinmindcraft.origins.common.registry.OriginRegisters;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import valoeghese.originsgacha.ClientEvents;
 import valoeghese.originsgacha.screens.util.VertexFormats;
@@ -23,13 +31,27 @@ public class OriginSelectScreen extends Screen {
 		super(Component.translatable("screens.origins_gacha.select"));
 
 		Player player = Minecraft.getInstance().player;
-		assert player != null; // appease the code inspection
-		this.originContainer = player.getCapability(OriginsAPI.ORIGIN_CONTAINER);
+		assert player != null; // appease the static code analysis
 
-		//this.itemRenderer.renderGuiItem();
+		// Get the player's current origin.
+		IOriginContainer originContainer = player.getCapability(OriginsAPI.ORIGIN_CONTAINER).resolve().orElseThrow(
+				() -> new IllegalStateException("Player does not have origin container?!")
+		);
+
+		ResourceKey<OriginLayer> layer = ResourceKey.create(
+				OriginsDynamicRegistries.LAYERS_REGISTRY,
+				new ResourceLocation("origins", "origin")
+		);
+
+		ResourceKey<Origin> currentOrigin = originContainer.getOrigin(layer);
+		Origin origin = OriginsAPI.getOriginsRegistry().get(currentOrigin);
+
+		if (origin == null) {
+			throw new IllegalStateException("Unknown Origin: " + currentOrigin.location());
+		}
+
+		// Get all origins.
 	}
-
-	private final LazyOptional<IOriginContainer> originContainer;
 
 	private double scaleFactor = 0.05;
 	private long lastScaleTime = System.currentTimeMillis();
@@ -37,6 +59,7 @@ public class OriginSelectScreen extends Screen {
 	@Override
 	public void render(PoseStack stack, int mouseX, int mouseY, float partialTick) {
 		super.render(stack, mouseX, mouseY, partialTick);
+		///this.itemRenderer.renderGuiItem();
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
