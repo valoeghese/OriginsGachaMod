@@ -23,6 +23,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import valoeghese.originsgacha.ClientEvents;
+import valoeghese.originsgacha.OriginsGacha;
 import valoeghese.originsgacha.screens.util.VertexFormats;
 import valoeghese.originsgacha.util.Division;
 
@@ -38,19 +39,15 @@ public class OriginSelectScreen extends Screen {
 				() -> new IllegalStateException("Player does not have origin container?!")
 		);
 
-		ResourceKey<OriginLayer> layer = ResourceKey.create(
-				OriginsDynamicRegistries.LAYERS_REGISTRY,
-				new ResourceLocation("origins", "origin")
-		);
-
-		ResourceKey<Origin> currentOrigin = originContainer.getOrigin(layer);
+		ResourceKey<Origin> currentOrigin = originContainer.getOrigin(OriginsGacha.ORIGIN_LAYER);
 		Origin origin = OriginsAPI.getOriginsRegistry().get(currentOrigin);
 
 		if (origin == null) {
 			throw new IllegalStateException("Unknown Origin: " + currentOrigin.location());
 		}
 
-		// Get all origins.
+		// Get all unlocked origins.
+
 	}
 
 	private double scaleFactor = 0.05;
