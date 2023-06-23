@@ -17,22 +17,21 @@ import valoeghese.originsgacha.network.packet.S2CUnlockOriginsSyncPacket;
 public class CommonEvents {
 	@SubscribeEvent
 	public static void onTick(final TickEvent.ServerTickEvent event) {
-		for (Player player : event.getServer().getPlayerList().getPlayers()) {
-			player.getCapability(UnlockedOrigins.CAPABILITY).ifPresent(IUnlockedOrigins::tick);
+		if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
+		{
+			for (Player player : event.getServer().getPlayerList().getPlayers()) {
+				player.getCapability(UnlockedOrigins.CAPABILITY).ifPresent(IUnlockedOrigins::tick);
+			}
 		}
 	}
 
 	@SubscribeEvent
 	public static void onEquip(final PlayerTryEquipEvent event) {
-		if (event.getStack().getItem() == Items.ELYTRA) {
-			event.setCanceled(true);
-		}
-	}
-
-	@SubscribeEvent
-	public static void onPlayerLogin(final PlayerEvent.PlayerLoggedInEvent event) {
-		if (event.getEntity() instanceof ServerPlayer player) {
-			NetworkManager.sendToPlayer(player, new S2CUnlockOriginsSyncPacket());
+		if (OriginsGacha.FeatureFlags.DISABLED_ELYTRA.isEnabled())
+		{
+			if (event.getStack().getItem() == Items.ELYTRA) {
+				event.setCanceled(true);
+			}
 		}
 	}
 }

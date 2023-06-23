@@ -27,7 +27,7 @@ public class NetworkManager {
 	);
 
 	public static void setup() {
-		registerPacket(0, new S2CUnlockOriginsSyncPacket(), ClientOriginsGachaPacketListener::onUnlockedOriginsSync);
+		registerPacket(0, new S2CUnlockOriginsSyncPacket(null, null), ClientOriginsGachaPacketListener::onUnlockedOriginsSync);
 	}
 
 	public static <T extends Packet<T>> void sendToPlayer(ServerPlayer player, T packet) {

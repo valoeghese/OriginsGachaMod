@@ -4,24 +4,19 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import io.github.apace100.origins.origin.OriginLayers;
+import com.mojang.logging.LogUtils;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
-import io.github.edwinmindcraft.origins.api.origin.OriginLayer;
-import io.github.edwinmindcraft.origins.api.registry.OriginsDynamicRegistries;
-import io.github.edwinmindcraft.origins.common.registry.OriginRegisters;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
 import valoeghese.originsgacha.ClientEvents;
 import valoeghese.originsgacha.OriginsGacha;
 import valoeghese.originsgacha.screens.util.VertexFormats;
@@ -46,8 +41,8 @@ public class OriginSelectScreen extends Screen {
 			throw new IllegalStateException("Unknown Origin: " + currentOrigin.location());
 		}
 
+		LOGGER.info(origin.getName().getString());
 		// Get all unlocked origins.
-
 	}
 
 	private double scaleFactor = 0.05;
@@ -178,6 +173,8 @@ public class OriginSelectScreen extends Screen {
 	public boolean isPauseScreen() {
 		return false;
 	}
+
+	private static final Logger LOGGER = LogUtils.getLogger();
 
 	private static final Division<Integer> SECTORS = new Division<Integer>()
 			.addSection(2 * Math.PI * (6.0/8.0), 0)

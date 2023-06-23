@@ -26,17 +26,54 @@ public class OriginsGacha
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public OriginsGacha()
-    {
+    public OriginsGacha() {
         // Register core events.
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
     }
 
-    private void setup(final FMLCommonSetupEvent event)
-    {
+    private void setup(final FMLCommonSetupEvent event) {
         LOGGER.info("Initialising Origins Gacha (Common)");
 
-        DispenserBlock.registerBehavior(Items.ELYTRA, new DefaultDispenseItemBehavior());
-        NetworkManager.setup();
+        if (FeatureFlags.DISABLED_ELYTRA.isEnabled())
+        {
+            DispenserBlock.registerBehavior(Items.ELYTRA, new DefaultDispenseItemBehavior());
+        }
+
+        if (FeatureFlags.ORIGIN_GACHA.isEnabled())
+        {
+            NetworkManager.setup();
+        }
+    }
+
+    /**
+     * Feature flags for Origins Gacha. Edit these to enable or disable features of the mod.
+     */
+    public enum FeatureFlags {
+        /**
+         * Whether preventing players from equipping the elytra should be enabled.
+         */
+        DISABLED_ELYTRA(true),
+        /**
+         * Whether easter eggs should be enabled.
+         */
+        EASTER_EGGS(true),
+        /**
+         * Whether the main system of unlocking and switching origins should be enabled.
+         */
+        ORIGIN_GACHA(true);
+
+        FeatureFlags(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        private final boolean enabled;
+
+        /**
+         * Get whether this feature flag is enabled.
+         * @return whether this feature flag is enabled.
+         */
+        public boolean isEnabled() {
+            return this.enabled;
+        }
     }
 }
