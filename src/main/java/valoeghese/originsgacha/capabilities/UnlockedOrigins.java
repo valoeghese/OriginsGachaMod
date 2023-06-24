@@ -1,8 +1,12 @@
 package valoeghese.originsgacha.capabilities;
 
+import com.mojang.logging.LogUtils;
+import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
+import io.github.edwinmindcraft.origins.api.registry.OriginsBuiltinRegistries;
 import io.github.edwinmindcraft.origins.api.registry.OriginsDynamicRegistries;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -18,11 +22,15 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import valoeghese.originsgacha.network.NetworkManager;
 import valoeghese.originsgacha.network.packet.S2CUnlockOriginsSyncPacket;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializable<CompoundTag> {
 	public UnlockedOrigins(Player player) {
@@ -40,6 +48,32 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 
 	@Override
 	public void tick() {
+		// Note: from prior testing, the first deserialisation happens before this is run, given there is data to
+		// deserialise.
+
+		// if no unlocked origins, select two random origins.
+		if (this.unlockedOrigins.size() == 0 && this.player instanceof ServerPlayer player) {
+			Registry<Origin> originRegistry = OriginsAPI.getOriginsRegistry(player.getServer());
+
+			var origins = new ArrayList<>(originRegistry.entrySet());
+			origins.removeIf(entry -> entry.getValue().isUnchoosable());
+			Collections.shuffle(origins);
+
+			// Make sure there are actually enough origins for the mod to function
+			// Who would even want to use this mod with only one selectable origin anyway
+
+			if (origins.size() < 2) {
+				throw new IllegalStateException("Less than 2 selectable origins! OriginsGacha requires at least 2 selectable origins be present.");
+			}
+
+			// Add the two origins at the top of the shuffled list
+			this.unlockedOrigins.add(origins.get(0).getKey());
+			this.unlockedOrigins.add(origins.get(1).getKey());
+
+			// We should synchronise the unlocked origins to the client.
+			this.shouldSync = true;
+		}
+
 		if (this.shouldSync && this.player instanceof ServerPlayer player) {
 			this.shouldSync = false;
 
@@ -101,6 +135,8 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 
 		this.shouldSync = true;
 	}
+
+	private static final Logger LOGGER = LogUtils.getLogger();
 
 	public static final ResourceLocation ID = new ResourceLocation("origins_gacha", "unlocked_origins");
 	public static final Capability<IUnlockedOrigins> CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
