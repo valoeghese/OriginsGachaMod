@@ -43,6 +43,22 @@ public class S2CUnlockOriginsSyncPacket implements Packet<S2CUnlockOriginsSyncPa
 	private final UpdateType updateType;
 	private final List<ResourceKey<Origin>> origins;
 
+	/**
+	 * Get the update type. This determines how the packet should modify the client origin list.
+	 * @return the update type.
+	 */
+	public UpdateType getUpdateType() {
+		return this.updateType;
+	}
+
+	/**
+	 * Get the list of unlocked origins.
+	 * @return the list of unlocked origins.
+	 */
+	public List<ResourceKey<Origin>> getOrigins() {
+		return this.origins;
+	}
+
 	@Override
 	public S2CUnlockOriginsSyncPacket decode(FriendlyByteBuf buf) {
 		// Read Update Type

@@ -12,16 +12,24 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import valoeghese.originsgacha.ClientEvents;
 import valoeghese.originsgacha.OriginsGacha;
+import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.screens.util.VertexFormats;
 import valoeghese.originsgacha.util.Division;
 
+import java.util.List;
+
+/**
+ * The selection wheel for switching origins.
+ */
 public class OriginSelectScreen extends Screen {
 	public OriginSelectScreen() {
 		super(Component.translatable("screens.origins_gacha.select"));
@@ -35,45 +43,56 @@ public class OriginSelectScreen extends Screen {
 		);
 
 		ResourceKey<Origin> currentOrigin = originContainer.getOrigin(OriginsGacha.ORIGIN_LAYER);
-		Origin origin = OriginsAPI.getOriginsRegistry().get(currentOrigin);
+		this.currentOrigin = OriginsAPI.getOriginsRegistry().get(currentOrigin);
 
-		if (origin == null) {
+		if (this.currentOrigin == null) {
 			throw new IllegalStateException("Unknown Origin: " + currentOrigin.location());
 		}
 
-		LOGGER.info(origin.getName().getString());
 		// Get all unlocked origins.
+		IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(player);
+		Registry<Origin> originRegistry = OriginsAPI.getOriginsRegistry();
+
+		this.availableOrigins = unlockedOrigins.getUnlockedOrigins().stream().map(originRegistry::get).toList();
 	}
 
+	// origin data to display
+	private final Origin currentOrigin;
+	private final List<Origin> availableOrigins;
+	private int page = 0;
+
+	// scaling
 	private double scaleFactor = 0.05;
 	private long lastScaleTime = System.currentTimeMillis();
 
 	@Override
 	public void render(PoseStack stack, int mouseX, int mouseY, float partialTick) {
 		super.render(stack, mouseX, mouseY, partialTick);
-		///this.itemRenderer.renderGuiItem();
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 
 		double centreX = this.width / 2.0;
 		double centreY = this.height / 2.0;
-		double size = this.scaleFactor * this.height / 2.5;
-		double innerButtonSize = size * 0.2;
-		double innerEdgeSize = size * 0.25;
+		double outerEdgeSize = this.scaleFactor * this.height / 2.5;
+		double innerButtonSize = outerEdgeSize * 0.2;
+		double innerEdgeSize = outerEdgeSize * 0.25;
 
 		float[] mousePosPolar = rect2polar(mouseX - (float)centreX, mouseY - (float)centreY);
 		int selectedSector = -1;
 
 		if (mousePosPolar[0] < innerButtonSize) {
 			selectedSector = 8;
-		} else if (mousePosPolar[0] >= innerEdgeSize && mousePosPolar[0] < size) {
+		} else if (mousePosPolar[0] >= innerEdgeSize && mousePosPolar[0] < outerEdgeSize) {
 			selectedSector = SECTORS.get(mousePosPolar[1]);
 		}
 
-		this.drawCircles(centreX, centreY, size, innerButtonSize, innerEdgeSize, selectedSector);
+		this.drawCircles(centreX, centreY, outerEdgeSize, innerButtonSize, innerEdgeSize, selectedSector);
 
 		RenderSystem.disableBlend();
+
+		// Draw Icons
+		this.drawIcons(centreX, centreY, 0.5 * (outerEdgeSize + innerEdgeSize));
 
 		// scale up
 		if (this.scaleFactor < 1) {
@@ -92,10 +111,31 @@ public class OriginSelectScreen extends Screen {
 		}
 	}
 
-	private void drawCircles(double centreX, double centreY, double size, double innerButtonSize, double innerEdgeSize,
-							 int highlightedSector) {
-		final int nSectors = 64;
+	private void drawIcons(double centreX, double centreY, double distance) {
+		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
+
+		final int nSectors = 8;
 		final double theta = 2.0 * Math.PI / nSectors;
+
+		for (int i = 0; i < nSectors; i++) {
+			int index = i + this.page * nSectors;
+
+			if (index < this.availableOrigins.size()) {
+				double angle = theta * (i - 1.5);
+
+				this.itemRenderer.renderGuiItem(
+						this.availableOrigins.get(index).getIcon(),
+						Mth.floor(centreX + distance * Math.cos(angle)),
+						Mth.floor(centreY + distance * Math.sin(angle))
+				);
+			}
+		}
+	}
+
+	private void drawCircles(double centreX, double centreY, double outerEdgeSize, double innerButtonSize,
+							 double innerEdgeSize, int highlightedSector) {
+		final int nRenderSectors = 64;
+		final double theta = 2.0 * Math.PI / nRenderSectors;
 
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
@@ -103,7 +143,7 @@ public class OriginSelectScreen extends Screen {
 			float shade = highlightedSector == 8 ? 1 : 0.2f;
 
 			// Inner Circle
-			for (int i = 0; i < nSectors; i++) {
+			for (int i = 0; i < nRenderSectors; i++) {
 				double angle = theta * i;
 
 				builder.position(centreX, centreY)
@@ -120,7 +160,7 @@ public class OriginSelectScreen extends Screen {
 			}
 
 			// Outer Circle
-			for (int i = 0; i < nSectors; i++) {
+			for (int i = 0; i < nRenderSectors; i++) {
 				double angle = theta * i;
 				final int sector = SECTORS.get(angle);
 
@@ -137,11 +177,11 @@ public class OriginSelectScreen extends Screen {
 						.colour(shade, shade, shade, 0.5f)
 						.endVertex();
 
-				builder.position(centreX + size * cosNext, centreY + size * sinNext)
+				builder.position(centreX + outerEdgeSize * cosNext, centreY + outerEdgeSize * sinNext)
 						.colour(shade, shade, shade, 0.5f)
 						.endVertex();
 
-				builder.position(centreX + size * cos, centreY + size * sin)
+				builder.position(centreX + outerEdgeSize * cos, centreY + outerEdgeSize * sin)
 						.colour(shade, shade, shade, 0.5f)
 						.endVertex();
 
@@ -151,7 +191,7 @@ public class OriginSelectScreen extends Screen {
 						.colour(shade, shade, shade, 0.5f)
 						.endVertex();
 
-				builder.position(centreX + size * cosNext, centreY + size * sinNext)
+				builder.position(centreX + outerEdgeSize * cosNext, centreY + outerEdgeSize * sinNext)
 						.colour(shade, shade, shade, 0.5f)
 						.endVertex();
 

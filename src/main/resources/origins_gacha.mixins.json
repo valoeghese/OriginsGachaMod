@@ -10,6 +10,7 @@
     "equip.PlayerMixin"
   ],
   "client": [
+    "screens.ChooseOriginScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -84,6 +84,14 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 		}
 	}
 
+	public void onSync(S2CUnlockOriginsSyncPacket packet) {
+		if (packet.getUpdateType() == S2CUnlockOriginsSyncPacket.UpdateType.REPLACE_ORIGINS) {
+			this.unlockedOrigins.clear();
+		}
+
+		this.unlockedOrigins.addAll(packet.getOrigins());
+	}
+
 	@Override
 	public List<ResourceKey<Origin>> getUnlockedOrigins() {
 		return List.of();
@@ -93,7 +101,6 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 	public Player getOwner() {
 		return this.player;
 	}
-
 
 	// Capability and Serialisation
 
