@@ -78,14 +78,7 @@ public class OriginSelectScreen extends Screen {
 		double innerButtonSize = outerEdgeSize * 0.2;
 		double innerEdgeSize = outerEdgeSize * 0.25;
 
-		float[] mousePosPolar = rect2polar(mouseX - (float)centreX, mouseY - (float)centreY);
-		int selectedSector = -1;
-
-		if (mousePosPolar[0] < innerButtonSize) {
-			selectedSector = 8;
-		} else if (mousePosPolar[0] >= innerEdgeSize && mousePosPolar[0] < outerEdgeSize) {
-			selectedSector = SECTORS.get(mousePosPolar[1]);
-		}
+		int selectedSector = getSelectedButton(mouseX, mouseY, innerButtonSize, innerEdgeSize, outerEdgeSize);
 
 		this.drawCircles(centreX, centreY, outerEdgeSize, innerButtonSize, innerEdgeSize, selectedSector);
 
@@ -111,6 +104,13 @@ public class OriginSelectScreen extends Screen {
 		}
 	}
 
+	/**
+	 * Draw the item icons representing the selectable origins, and (TO-DO) the orb of origin and undertext in
+	 * the centre.
+	 * @param centreX the x position of the centre of the origin ring.
+	 * @param centreY the y position of the centre of the origin ring.
+	 * @param distance the distance from the origin ring at which to render the icons.
+	 */
 	private void drawIcons(double centreX, double centreY, double distance) {
 		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
 
@@ -127,6 +127,7 @@ public class OriginSelectScreen extends Screen {
 			if (index < this.availableOrigins.size()) {
 				double angle = theta * (i - 1.5);
 
+				// * 0.5 to counteract the 2.0f scale for positioning.
 				this.itemRenderer.renderGuiItem(
 						this.availableOrigins.get(index).getIcon(),
 						Mth.floor((centreX + distance * Math.cos(angle) - 16) * 0.5),
@@ -138,8 +139,19 @@ public class OriginSelectScreen extends Screen {
 		stack.popPose();
 	}
 
+	/**
+	 * Draw the circles (inner button and outer ring) in the GUI.
+	 * @param centreX the centre X of the circles.
+	 * @param centreY the centre Y of the circles.
+	 * @param outerEdgeSize the radius of the outer edge of the outer ring of origin buttons.
+	 * @param innerButtonSize the radius of the inner button.
+	 * @param innerEdgeSize the radius of the inner edge of the outer ring of origin buttons.
+	 * @param highlightedSector the sector of the outer ring to highlight. Use 0-7 to highlight one of the outer-ring sectors,
+	 *                          8 for the inner button, anything else highlights nothing.
+	 */
 	private void drawCircles(double centreX, double centreY, double outerEdgeSize, double innerButtonSize,
 							 double innerEdgeSize, int highlightedSector) {
+		final int nOriginSectors = 8;
 		final int nRenderSectors = 64;
 		final double theta = 2.0 * Math.PI / nRenderSectors;
 
@@ -165,12 +177,18 @@ public class OriginSelectScreen extends Screen {
 						.endVertex();
 			}
 
+			int currentOriginSector = this.availableOrigins.indexOf(this.currentOrigin) - this.page * nOriginSectors;
+
 			// Outer Circle
 			for (int i = 0; i < nRenderSectors; i++) {
 				double angle = theta * i;
 				final int sector = SECTORS.get(angle);
 
-				shade = sector == highlightedSector ? 1 : ((sector & 1) == 0 ? 0.2f : 0.4f);
+				shade = (sector == currentOriginSector) ? 0.0f : (
+						sector == highlightedSector ? 1 : (
+								(sector & 1) == 0 ? 0.2f : 0.4f
+						)
+				);
 
 				final double cos = Math.cos(angle);
 				final double sin = Math.sin(angle);
@@ -213,6 +231,55 @@ public class OriginSelectScreen extends Screen {
 		if (!isDown(ClientEvents.SELECT_ORIGIN)) {
 			this.onClose();
 		}
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		double outerEdgeSize = this.getOuterEdgeRadius();
+		double innerButtonSize = outerEdgeSize * 0.2;
+		double innerEdgeSize = outerEdgeSize * 0.25;
+
+		int selectedButton = this.getSelectedButton((float) mouseX, (float) mouseY,
+				innerButtonSize, innerEdgeSize, outerEdgeSize);
+
+		if (button == 0 && selectedButton > -1) {
+			LOGGER.info("Clicked Button " + selectedButton);
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the radius of the outer edge of the outer ring of origins.
+	 * @return the radius of the outer edge of the outer ring of origins.
+	 */
+	private double getOuterEdgeRadius() {
+		return this.scaleFactor * this.height / 2.5;
+	}
+
+	/**
+	 * Get the selected button in the GUI.
+	 * @param mouseX the x position of the mouse on the screen.
+	 * @param mouseY the y position of the mouse on the screen.
+	 * @param innerButtonSize the radius of the central (inner) button.
+	 * @param innerEdgeSize the radius of the inner edge of the outer ring of buttons.
+	 * @param outerEdgeSize the radius of the outer edge of the outer ring of buttons.
+	 * @return the sector selected. -1 is returned if no button is selected, 8 is returned if the centre button is
+	 * selected, and 0-7 are returned for the buttons on the outer ring of buttons.
+	 */
+	private int getSelectedButton(float mouseX, float mouseY,
+								  double innerButtonSize, double innerEdgeSize, double outerEdgeSize) {
+		float[] mousePosPolar = rect2polar(mouseX - (float)(this.width / 2.0), mouseY - (float)(this.height / 2.0));
+
+		if (mousePosPolar[0] < innerButtonSize) {
+			return 8;
+		} else if (mousePosPolar[0] >= innerEdgeSize && mousePosPolar[0] < outerEdgeSize) {
+			return SECTORS.get(mousePosPolar[1]);
+		}
+
+		// no button selected
+		return -1;
 	}
 
 	@Override
