@@ -114,6 +114,10 @@ public class OriginSelectScreen extends Screen {
 	private void drawIcons(double centreX, double centreY, double distance) {
 		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
 
+		PoseStack stack = RenderSystem.getModelViewStack();
+		stack.pushPose();
+		stack.scale(2.0f, 2.0f, 0.0f);
+
 		final int nSectors = 8;
 		final double theta = 2.0 * Math.PI / nSectors;
 
@@ -121,16 +125,17 @@ public class OriginSelectScreen extends Screen {
 			int index = i + this.page * nSectors;
 
 			if (index < this.availableOrigins.size()) {
-				System.out.println("Rendering Index " + index);
 				double angle = theta * (i - 1.5);
 
 				this.itemRenderer.renderGuiItem(
 						this.availableOrigins.get(index).getIcon(),
-						Mth.floor(centreX + distance * Math.cos(angle)),
-						Mth.floor(centreY + distance * Math.sin(angle))
+						Mth.floor((centreX + distance * Math.cos(angle) - 16) * 0.5),
+						Mth.floor((centreY + distance * Math.sin(angle) - 16) * 0.5)
 				);
 			}
 		}
+
+		stack.popPose();
 	}
 
 	private void drawCircles(double centreX, double centreY, double outerEdgeSize, double innerButtonSize,
