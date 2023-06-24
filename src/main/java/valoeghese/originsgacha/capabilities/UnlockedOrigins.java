@@ -94,7 +94,7 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 
 	@Override
 	public List<ResourceKey<Origin>> getUnlockedOrigins() {
-		return List.of();
+		return this.unlockedOrigins;
 	}
 
 	@Override

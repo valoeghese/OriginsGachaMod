@@ -121,6 +121,7 @@ public class OriginSelectScreen extends Screen {
 			int index = i + this.page * nSectors;
 
 			if (index < this.availableOrigins.size()) {
+				System.out.println("Rendering Index " + index);
 				double angle = theta * (i - 1.5);
 
 				this.itemRenderer.renderGuiItem(
