@@ -25,7 +25,9 @@ import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.screens.util.VertexFormats;
 import valoeghese.originsgacha.util.Division;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The selection wheel for switching origins.
@@ -38,11 +40,11 @@ public class OriginSelectScreen extends Screen {
 		assert player != null; // appease the static code analysis
 
 		// Get the player's current origin.
-		IOriginContainer originContainer = player.getCapability(OriginsAPI.ORIGIN_CONTAINER).resolve().orElseThrow(
+		this.playerOriginContainer = player.getCapability(OriginsAPI.ORIGIN_CONTAINER).resolve().orElseThrow(
 				() -> new IllegalStateException("Player does not have origin container?!")
 		);
 
-		ResourceKey<Origin> currentOrigin = originContainer.getOrigin(OriginsGacha.ORIGIN_LAYER);
+		ResourceKey<Origin> currentOrigin = this.playerOriginContainer.getOrigin(OriginsGacha.ORIGIN_LAYER);
 		this.currentOrigin = OriginsAPI.getOriginsRegistry().get(currentOrigin);
 
 		if (this.currentOrigin == null) {
@@ -53,12 +55,15 @@ public class OriginSelectScreen extends Screen {
 		IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(player);
 		Registry<Origin> originRegistry = OriginsAPI.getOriginsRegistry();
 
-		this.availableOrigins = unlockedOrigins.getUnlockedOrigins().stream().map(originRegistry::get).toList();
+		this.availableOrigins = unlockedOrigins.getUnlockedOrigins().stream()
+				.map(k -> new AbstractMap.SimpleEntry<>(k, originRegistry.get(k)))
+				.toList();
 	}
 
 	// origin data to display
+	private final IOriginContainer playerOriginContainer;
 	private final Origin currentOrigin;
-	private final List<Origin> availableOrigins;
+	private final List<? extends Map.Entry<ResourceKey<Origin>, Origin>> availableOrigins;
 	private int page = 0;
 
 	// scaling
@@ -130,7 +135,7 @@ public class OriginSelectScreen extends Screen {
 
 				// * 0.5 to counteract the 2.0f scale for positioning.
 				this.itemRenderer.renderGuiItem(
-						this.availableOrigins.get(index).getIcon(),
+						this.availableOrigins.get(index).getValue().getIcon(),
 						Mth.floor((centreX + distance * Math.cos(angle)) / scale - 8),
 						Mth.floor((centreY + distance * Math.sin(angle)) / scale - 8)
 				);
@@ -178,7 +183,7 @@ public class OriginSelectScreen extends Screen {
 						.endVertex();
 			}
 
-			int currentOriginSector = this.availableOrigins.indexOf(this.currentOrigin) - this.page * nOriginSectors;
+			int currentOriginSector = this.indexOf(this.currentOrigin) - this.page * nOriginSectors;
 
 			// Outer Circle
 			for (int i = 0; i < nRenderSectors; i++) {
@@ -227,6 +232,21 @@ public class OriginSelectScreen extends Screen {
 		}
 	}
 
+	/**
+	 * Get the index of the given origin in the list of unlocked origins.
+	 * @param origin the origin to find the index of.
+	 * @return the index of the given origin in the list of unlocked origins. -1 if the origin is not unlocked.
+	 */
+	private int indexOf(Origin origin) {
+		for (int i = 0; i < this.availableOrigins.size(); i++) {
+			if (this.availableOrigins.get(i).getValue().equals(origin)) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
 	@Override
 	public void tick() {
 		if (!isDown(ClientEvents.SELECT_ORIGIN)) {
@@ -245,6 +265,16 @@ public class OriginSelectScreen extends Screen {
 
 		if (button == 0 && selectedButton > -1) {
 			LOGGER.info("Clicked Button " + selectedButton);
+
+			if (selectedButton < 8) {
+				int index = selectedButton + this.page * 8;
+
+				if (index < this.availableOrigins.size()) {
+					ResourceKey<Origin> origin = this.availableOrigins.get(index).getKey();
+					this.playerOriginContainer.setOrigin(OriginsGacha.ORIGIN_LAYER, origin);
+				}
+			}
+
 			return true;
 		}
 
