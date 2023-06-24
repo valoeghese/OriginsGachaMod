@@ -28,4 +28,15 @@ public interface IUnlockedOrigins extends INBTSerializable<CompoundTag> {
 	 * @return the player that owns this instance. The unlocked origins belong to them.
 	 */
 	Player getOwner();
+
+	/**
+	 * Get the unlocked origins instance for a given player.
+	 * @param player the player to get the unlocked origins instance for.
+	 * @return the instance associated with the given player.
+	 */
+	static IUnlockedOrigins getUnlockedOrigins(Player player) {
+		return player.getCapability(UnlockedOrigins.CAPABILITY).resolve().orElseThrow(
+				() -> new IllegalStateException("No unlocked origins capability for " + player.getName())
+		);
+	}
 }

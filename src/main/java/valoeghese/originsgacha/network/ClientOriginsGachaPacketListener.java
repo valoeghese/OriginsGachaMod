@@ -8,7 +8,7 @@ import valoeghese.originsgacha.network.packet.S2CUnlockOriginsSyncPacket;
 /**
  * Like {@link net.minecraft.client.multiplayer.ClientPacketListener} but for this mod.
  */
-public class ClientOriginsGachaPacketListener {
+public final class ClientOriginsGachaPacketListener {
 	private static final Logger LOGGER = LogUtils.getLogger();
 
 	public static void onUnlockedOriginsSync(S2CUnlockOriginsSyncPacket packet, NetworkEvent.Context context) {

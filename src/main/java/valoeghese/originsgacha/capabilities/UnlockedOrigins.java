@@ -28,11 +28,6 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 	public UnlockedOrigins(Player player) {
 		this.player = player;
 		this.unlockedOrigins = new ArrayList<>();
-
-		// sync server-client upon player login.
-		// this field is unused client side, however this is done rather than "true" to make the purpose more clear.
-		// and prevent any issues should any changes be made to synchronisation for some reason.
-		this.shouldSync = player instanceof ServerPlayer;
 	}
 
 	private final transient Player player;
@@ -103,6 +98,8 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 				this.unlockedOrigins.add(ResourceKey.create(OriginsDynamicRegistries.ORIGINS_REGISTRY, originId));
 			}
 		}
+
+		this.shouldSync = true;
 	}
 
 	public static final ResourceLocation ID = new ResourceLocation("origins_gacha", "unlocked_origins");

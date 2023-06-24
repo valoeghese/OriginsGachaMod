@@ -6,6 +6,7 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import valoeghese.originsgacha.network.packet.C2SRollOriginPacket;
 import valoeghese.originsgacha.network.packet.Packet;
 import valoeghese.originsgacha.network.packet.S2CUnlockOriginsSyncPacket;
 import valoeghese.originsgacha.util.Utils;
@@ -27,7 +28,11 @@ public class NetworkManager {
 	);
 
 	public static void setup() {
-		registerPacket(0, new S2CUnlockOriginsSyncPacket(null, null), ClientOriginsGachaPacketListener::onUnlockedOriginsSync);
+		// 0XX: Client to Server Packets
+		registerPacket(0, new C2SRollOriginPacket(), ServerOriginsGachaPacketListener::onRoll);
+
+		// 1XX: Server to Client Packets
+		registerPacket(100, new S2CUnlockOriginsSyncPacket(null, null), ClientOriginsGachaPacketListener::onUnlockedOriginsSync);
 	}
 
 	public static <T extends Packet<T>> void sendToPlayer(ServerPlayer player, T packet) {
