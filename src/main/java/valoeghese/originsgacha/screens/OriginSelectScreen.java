@@ -78,9 +78,9 @@ public class OriginSelectScreen extends Screen {
 		double innerButtonSize = outerEdgeSize * 0.2;
 		double innerEdgeSize = outerEdgeSize * 0.25;
 
-		int selectedSector = getSelectedButton(mouseX, mouseY, innerButtonSize, innerEdgeSize, outerEdgeSize);
+		int selectedButton = getSelectedButton(mouseX, mouseY, innerButtonSize, innerEdgeSize, outerEdgeSize);
 
-		this.drawCircles(centreX, centreY, outerEdgeSize, innerButtonSize, innerEdgeSize, selectedSector);
+		this.drawCircles(centreX, centreY, outerEdgeSize, innerButtonSize, innerEdgeSize, selectedButton);
 
 		RenderSystem.disableBlend();
 
@@ -113,10 +113,11 @@ public class OriginSelectScreen extends Screen {
 	 */
 	private void drawIcons(double centreX, double centreY, double distance) {
 		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
+		float scale = (float) (this.scaleFactor) * 2.0f;
 
 		PoseStack stack = RenderSystem.getModelViewStack();
 		stack.pushPose();
-		stack.scale(2.0f, 2.0f, 0.0f);
+		stack.scale(scale, scale, 0.0f);
 
 		final int nSectors = 8;
 		final double theta = 2.0 * Math.PI / nSectors;
@@ -130,8 +131,8 @@ public class OriginSelectScreen extends Screen {
 				// * 0.5 to counteract the 2.0f scale for positioning.
 				this.itemRenderer.renderGuiItem(
 						this.availableOrigins.get(index).getIcon(),
-						Mth.floor((centreX + distance * Math.cos(angle) - 16) * 0.5),
-						Mth.floor((centreY + distance * Math.sin(angle) - 16) * 0.5)
+						Mth.floor((centreX + distance * Math.cos(angle)) / scale - 8),
+						Mth.floor((centreY + distance * Math.sin(angle)) / scale - 8)
 				);
 			}
 		}
@@ -289,6 +290,9 @@ public class OriginSelectScreen extends Screen {
 
 	private static final Logger LOGGER = LogUtils.getLogger();
 
+	/**
+	 * The angles of the start of each sector of the outer ring.
+	 */
 	private static final Division<Integer> SECTORS = new Division<Integer>()
 			.addSection(2 * Math.PI * (6.0/8.0), 0)
 			.addSection(2 * Math.PI * (7.0/8.0), 1)
