@@ -52,7 +52,10 @@ public class NetworkManager {
 				(Class<T>) packet.getClass(),
 				Packet::encode,
 				packet::decode,
-				(msg, ctxSupplier) -> handler.accept(msg, ctxSupplier.get()),
+				(msg, ctxSupplier) -> {
+					handler.accept(msg, ctxSupplier.get());
+					ctxSupplier.get().setPacketHandled(true);
+				},
 				Optional.ofNullable(packet.getDirection())
 		);
 	}

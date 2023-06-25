@@ -3,6 +3,8 @@ package valoeghese.originsgacha.network;
 import com.mojang.logging.LogUtils;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
+import io.github.edwinmindcraft.origins.api.origin.Origin;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraftforge.network.NetworkEvent;
@@ -32,31 +34,40 @@ public final class ServerOriginsGachaPacketListener {
 		LOGGER.info("Received " + packet);
 
 		// Ensure the player has the origin unlocked
-		// TODO check cooldown
 		ServerPlayer player = context.getSender();
 		IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(Objects.requireNonNull(player));
 
 		if (unlockedOrigins.hasOrigin(packet.getOrigin())) {
-			IOriginContainer originContainer = context.getSender().getCapability(OriginsAPI.ORIGIN_CONTAINER).orElseThrow(
-					() -> new IllegalStateException("Player " + context.getSender().getName().getString() + " does not have an origin container!")
-			);
+			IUnlockedOriginData toData = unlockedOrigins.getUnlockedOrigin(packet.getOrigin());
+			assert toData != null; // if hasOrigin passed this must be null
 
-			// only switch if origins are different
-			if (!originContainer.getOrigin(OriginsGacha.ORIGIN_LAYER).equals(packet.getOrigin())) {
-				// play cool sound
-				player.getLevel().playSound(
-						null,
-						player.getX(), player.getY(), player.getZ(),
-						SOUND_SWITCH_ORIGIN, SoundSource.PLAYERS,
-						1.0f, 1.0f);
+			// check cooldown
+			if ((player.getLevel().getGameTime() - toData.getUnlockTimeTicks()) >= 0) {
+				IOriginContainer originContainer = context.getSender().getCapability(OriginsAPI.ORIGIN_CONTAINER).orElseThrow(
+						() -> new IllegalStateException("Player " + context.getSender().getName().getString() + " does not have an origin container!")
+				);
 
-				// update cooldown time (will automatically sync to client)
-				IUnlockedOriginData data = unlockedOrigins.getUnlockedOrigin(packet.getOrigin());
-				assert data != null; // if hasOrigin passed this must be null
-				data.setCooldown(OriginsGachaConfig.CONFIG.getCoolDownSeconds());
+				// only switch if origins are different
+				ResourceKey<Origin> currentOrigin = originContainer.getOrigin(OriginsGacha.ORIGIN_LAYER);
 
-				// this will automatically sync to the client too
-				originContainer.setOrigin(OriginsGacha.ORIGIN_LAYER, packet.getOrigin());
+				if (!currentOrigin.equals(packet.getOrigin())) {
+					// play cool sound
+					player.getLevel().playSound(
+							null,
+							player.getX(), player.getY(), player.getZ(),
+							SOUND_SWITCH_ORIGIN, SoundSource.PLAYERS,
+							1.0f, 1.0f);
+
+					// update cooldown time (will automatically sync to client)
+					IUnlockedOriginData fromData = unlockedOrigins.getUnlockedOrigin(currentOrigin);
+
+					if (fromData != null) {
+						fromData.setCooldown(OriginsGachaConfig.CONFIG.getCoolDownSeconds());
+					}
+
+					// this will automatically sync to the client too
+					originContainer.setOrigin(OriginsGacha.ORIGIN_LAYER, packet.getOrigin());
+				}
 			}
 		}
 	}

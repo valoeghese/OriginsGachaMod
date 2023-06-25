@@ -19,6 +19,11 @@ public interface IUnlockedOrigins extends INBTSerializable<CompoundTag> {
 	void tick();
 
 	/**
+	 * Called to make the unlocked origins sync from server -> client.
+	 */
+	void sync();
+
+	/**
 	 * Get a list of unlocked origins.
 	 * @return a copy of the list containing the resource keys of all unlocked origins.
 	 */

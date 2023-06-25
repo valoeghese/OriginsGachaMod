@@ -1,10 +1,14 @@
 package valoeghese.originsgacha;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import valoeghese.originsgacha.capabilities.IUnlockedOriginData;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.capabilities.UnlockedOrigins;
 import valoeghese.originsgacha.event.PlayerTryEquipEvent;
@@ -27,6 +31,26 @@ public class CommonEvents {
 		{
 			if (event.getStack().getItem() == Items.ELYTRA) {
 				event.setCanceled(true);
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public static void onPlayerDeath(final LivingDeathEvent event) {
+		if (event.getEntity() instanceof ServerPlayer player) {
+			if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
+			{
+				// TODO reset cooldowns
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public static void onPlayerChangeWorld(final PlayerEvent.PlayerChangedDimensionEvent event) {
+		if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
+		{
+			if (event.getEntity() instanceof ServerPlayer player) {
+				IUnlockedOrigins.getUnlockedOrigins(player).sync();
 			}
 		}
 	}

@@ -10,6 +10,7 @@ import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.Registry;
@@ -27,6 +28,7 @@ import valoeghese.originsgacha.network.NetworkManager;
 import valoeghese.originsgacha.network.packet.C2SSwitchOriginPacket;
 import valoeghese.originsgacha.screens.util.VertexFormats;
 import valoeghese.originsgacha.util.Division;
+import valoeghese.originsgacha.util.Utils;
 
 import java.util.AbstractMap;
 import java.util.List;
@@ -93,7 +95,7 @@ public class OriginSelectScreen extends Screen {
 		RenderSystem.disableBlend();
 
 		// Draw Icons
-		this.drawIcons(centreX, centreY, 0.5 * (outerEdgeSize + innerEdgeSize));
+		this.drawIcons(stack, centreX, centreY, 0.5 * (outerEdgeSize + innerEdgeSize));
 
 		// scale up
 		if (this.scaleFactor < 1) {
@@ -113,13 +115,14 @@ public class OriginSelectScreen extends Screen {
 	}
 
 	/**
-	 * Draw the item icons representing the selectable origins, and (TO-DO) the orb of origin and undertext in
+	 * Draw the item icons representing the selectable origins, and (TO-DO) the orb of origin and count in
 	 * the centre.
+	 * @param guiStack the {@link PoseStack} for GUI rendering.
 	 * @param centreX the x position of the centre of the origin ring.
 	 * @param centreY the y position of the centre of the origin ring.
 	 * @param distance the distance from the origin ring at which to render the icons.
 	 */
-	private void drawIcons(double centreX, double centreY, double distance) {
+	private void drawIcons(PoseStack guiStack, double centreX, double centreY, double distance) {
 		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
 		float scale = (float) (this.scaleFactor) * 2.0f;
 
@@ -136,19 +139,33 @@ public class OriginSelectScreen extends Screen {
 
 			if (index < this.availableOrigins.size()) {
 				double angle = theta * (i - 1.5);
+				var unlockedOriginPair = this.availableOrigins.get(index);
 
-				if (currentOriginIndex == index) {
+				long timeRemainingTicks =
+						unlockedOriginPair.getKey().getUnlockTimeTicks()
+						- this.playerOriginContainer.getOwner().getLevel().getGameTime();
+
+				boolean dark = currentOriginIndex == index || timeRemainingTicks > 0;
+
+				if (dark) {
 					RenderSystem.setShaderColor(0.5f, 0.5f, 0.5f, 0.5f);
 				}
 
-				// * 0.5 to counteract the 2.0f scale for positioning.
-				this.itemRenderer.renderGuiItem(
-						this.availableOrigins.get(index).getValue().getIcon(),
-						Mth.floor((centreX + distance * Math.cos(angle)) / scale - 8),
-						Mth.floor((centreY + distance * Math.sin(angle)) / scale - 8)
-				);
+				final double x = centreX + distance * Math.cos(angle);
+				final double y = centreY + distance * Math.sin(angle);
 
-				if (currentOriginIndex == index) {
+				// divide by scale to counteract the scale multiplication for positioning.
+				this.itemRenderer.renderGuiItem(
+						unlockedOriginPair.getValue().getIcon(),
+						Mth.floor(x/scale - 8),
+						Mth.floor(y/scale - 8));
+
+				if (timeRemainingTicks > 0) {
+					GuiComponent.drawCenteredString(guiStack, this.font, Utils.timestampComponent(timeRemainingTicks),
+							(int)(x/scale), (int)(y/scale + 8), 0xFFFFFF);
+				}
+
+				if (dark) {
 					RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 				}
 			}
@@ -276,8 +293,6 @@ public class OriginSelectScreen extends Screen {
 				innerButtonSize, innerEdgeSize, outerEdgeSize);
 
 		if (button == 0 && selectedButton > -1) {
-			LOGGER.info("Clicked Button " + selectedButton);
-
 			if (selectedButton < 8) {
 				int index = selectedButton + this.page * 8;
 
@@ -285,7 +300,11 @@ public class OriginSelectScreen extends Screen {
 					var originPair = this.availableOrigins.get(index);
 					IUnlockedOriginData originData = originPair.getKey();
 
-					if (!originPair.getValue().equals(this.currentOrigin)) {
+					long timeRemainingTicks =
+							originData.getUnlockTimeTicks()
+							- this.playerOriginContainer.getOwner().getLevel().getGameTime();
+
+					if (!originPair.getValue().equals(this.currentOrigin) && timeRemainingTicks <= 0) {
 						// ask the server to switch to the selected origin
 						NetworkManager.sendToServer(new C2SSwitchOriginPacket(originData.getOrigin()));
 						// close the GUI

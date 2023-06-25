@@ -27,9 +27,7 @@ import valoeghese.originsgacha.network.packet.S2CUnlockedOriginsSyncPacket;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializable<CompoundTag> {
@@ -89,6 +87,11 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 	@Nullable
 	public IUnlockedOriginData getUnlockedOrigin(ResourceKey<Origin> data) {
 		return this.unlockedOrigins.stream().filter(uo -> uo.origin.equals(data)).findFirst().orElse(null);
+	}
+
+	@Override
+	public void sync() {
+		this.shouldSync = true;
 	}
 
 	public void onSync(S2CUnlockedOriginsSyncPacket packet) {
@@ -222,7 +225,7 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 
 		@Override
 		public void setCooldown(double cooldownTime) {
-			this.setUnlockTimeTicks((long) (cooldownTime * 20) * UnlockedOrigins.this.getGameTime());
+			this.setUnlockTimeTicks((long) (cooldownTime * 20) + UnlockedOrigins.this.getGameTime());
 		}
 
 		public void setUnlockTimeTicks(long unlockTimeTicks) {
