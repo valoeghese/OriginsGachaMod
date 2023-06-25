@@ -21,7 +21,10 @@ import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import valoeghese.originsgacha.ClientEvents;
 import valoeghese.originsgacha.OriginsGacha;
+import valoeghese.originsgacha.capabilities.IUnlockedOriginData;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
+import valoeghese.originsgacha.network.NetworkManager;
+import valoeghese.originsgacha.network.packet.C2SSwitchOriginPacket;
 import valoeghese.originsgacha.screens.util.VertexFormats;
 import valoeghese.originsgacha.util.Division;
 
@@ -56,14 +59,14 @@ public class OriginSelectScreen extends Screen {
 		Registry<Origin> originRegistry = OriginsAPI.getOriginsRegistry();
 
 		this.availableOrigins = unlockedOrigins.getUnlockedOrigins().stream()
-				.map(k -> new AbstractMap.SimpleEntry<>(k, originRegistry.get(k)))
+				.map(k -> new AbstractMap.SimpleEntry<>(k, originRegistry.get(k.getOrigin())))
 				.toList();
 	}
 
 	// origin data to display
 	private final IOriginContainer playerOriginContainer;
 	private final Origin currentOrigin;
-	private final List<? extends Map.Entry<ResourceKey<Origin>, Origin>> availableOrigins;
+	private final List<? extends Map.Entry<IUnlockedOriginData, Origin>> availableOrigins;
 	private int page = 0;
 
 	// scaling
@@ -126,6 +129,7 @@ public class OriginSelectScreen extends Screen {
 
 		final int nSectors = 8;
 		final double theta = 2.0 * Math.PI / nSectors;
+		final int currentOriginIndex = this.indexOf(this.currentOrigin);
 
 		for (int i = 0; i < nSectors; i++) {
 			int index = i + this.page * nSectors;
@@ -133,12 +137,20 @@ public class OriginSelectScreen extends Screen {
 			if (index < this.availableOrigins.size()) {
 				double angle = theta * (i - 1.5);
 
+				if (currentOriginIndex == index) {
+					RenderSystem.setShaderColor(0.5f, 0.5f, 0.5f, 0.5f);
+				}
+
 				// * 0.5 to counteract the 2.0f scale for positioning.
 				this.itemRenderer.renderGuiItem(
 						this.availableOrigins.get(index).getValue().getIcon(),
 						Mth.floor((centreX + distance * Math.cos(angle)) / scale - 8),
 						Mth.floor((centreY + distance * Math.sin(angle)) / scale - 8)
 				);
+
+				if (currentOriginIndex == index) {
+					RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+				}
 			}
 		}
 
@@ -270,8 +282,15 @@ public class OriginSelectScreen extends Screen {
 				int index = selectedButton + this.page * 8;
 
 				if (index < this.availableOrigins.size()) {
-					ResourceKey<Origin> origin = this.availableOrigins.get(index).getKey();
-					this.playerOriginContainer.setOrigin(OriginsGacha.ORIGIN_LAYER, origin);
+					var originPair = this.availableOrigins.get(index);
+					IUnlockedOriginData originData = originPair.getKey();
+
+					if (!originPair.getValue().equals(this.currentOrigin)) {
+						// ask the server to switch to the selected origin
+						NetworkManager.sendToServer(new C2SSwitchOriginPacket(originData.getOrigin()));
+						// close the GUI
+						this.onClose();
+					}
 				}
 			}
 

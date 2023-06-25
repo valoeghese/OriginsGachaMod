@@ -2,46 +2,52 @@ package valoeghese.originsgacha.network.packet;
 
 import io.github.edwinmindcraft.origins.api.origin.Origin;
 import io.github.edwinmindcraft.origins.api.registry.OriginsDynamicRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraftforge.network.NetworkDirection;
 import org.jetbrains.annotations.Nullable;
+import valoeghese.originsgacha.capabilities.UnlockedOrigins;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Packet for synchronising unlocked origins from the server to the client.
  */
-public class S2CUnlockOriginsSyncPacket implements Packet<S2CUnlockOriginsSyncPacket> {
+public class S2CUnlockedOriginsSyncPacket implements Packet<S2CUnlockedOriginsSyncPacket> {
 	/**
 	 * Refers to a type of update that could occur.
 	 */
 	public enum UpdateType {
 		/**
-		 * Replace origins. This should be the standard for synchronisation.
+		 * Replace origins. This updates everything on the client.
 		 */
 		REPLACE_ORIGINS,
 		/**
 		 * Add origins. This is used when spinning the wheel to unlock new origins. The wheel screen will open
 		 * and select the first origin in the list.
 		 */
-		ADD_ORIGINS
+		ADD_ORIGINS,
+		/**
+		 * Sync unlocked origin data. This only updates existing origins (and adds any missing origins).
+		 */
+		SYNC_DATA
 	}
 
 	/**
 	 * Create a packet for the given update type, with the given unlocked origins.
 	 * @param updateType the type of update to perform.
-	 * @param origins the list of unlocked origins.
+	 * @param origins the list of unlocked origins, in serialised NBT form.
 	 */
-	public S2CUnlockOriginsSyncPacket(UpdateType updateType, List<ResourceKey<Origin>> origins) {
+	public S2CUnlockedOriginsSyncPacket(UpdateType updateType, List<CompoundTag> origins) {
 		this.updateType = updateType;
 		this.origins = origins;
 	}
 
 	private final UpdateType updateType;
-	private final List<ResourceKey<Origin>> origins;
+	private final List<CompoundTag> origins;
 
 	/**
 	 * Get the update type. This determines how the packet should modify the client origin list.
@@ -52,31 +58,28 @@ public class S2CUnlockOriginsSyncPacket implements Packet<S2CUnlockOriginsSyncPa
 	}
 
 	/**
-	 * Get the list of unlocked origins.
+	 * Get the list of unlocked origins in NBT form.
 	 * @return the list of unlocked origins.
 	 */
-	public List<ResourceKey<Origin>> getOrigins() {
+	public List<CompoundTag> getOrigins() {
 		return this.origins;
 	}
 
 	@Override
-	public S2CUnlockOriginsSyncPacket decode(FriendlyByteBuf buf) {
+	public S2CUnlockedOriginsSyncPacket decode(FriendlyByteBuf buf) {
 		// Read Update Type
 		UpdateType type = UpdateType.values()[buf.readByte()];
 
 		// Read Origins
-		List<ResourceKey<Origin>> origins = new LinkedList<>();
+		List<CompoundTag> origins = new LinkedList<>();
 
 		int nElements = buf.readShort();
 
 		for (int i = 0; i < nElements; i++) {
-			origins.add(ResourceKey.create(
-					OriginsDynamicRegistries.ORIGINS_REGISTRY,
-					buf.readResourceLocation()
-			));
+			origins.add(buf.readNbt());
 		}
 
-		return new S2CUnlockOriginsSyncPacket(type, origins);
+		return new S2CUnlockedOriginsSyncPacket(type, origins);
 	}
 
 	@Override
@@ -87,8 +90,8 @@ public class S2CUnlockOriginsSyncPacket implements Packet<S2CUnlockOriginsSyncPa
 		// Write Origins
 		buf.writeShort(this.origins.size());
 
-		for (ResourceKey<Origin> originKey : this.origins) {
-			buf.writeResourceLocation(originKey.location());
+		for (CompoundTag unlockedOrigin : this.origins) {
+			buf.writeNbt(unlockedOrigin);
 		}
 	}
 
@@ -99,7 +102,7 @@ public class S2CUnlockOriginsSyncPacket implements Packet<S2CUnlockOriginsSyncPa
 
 	@Override
 	public String toString() {
-		return "S2CUnlockOriginsSyncPacket{" +
+		return "S2CUnlockedOriginsSyncPacket{" +
 				"updateType=" + updateType +
 				", origins=" + origins +
 				'}';

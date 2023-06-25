@@ -5,7 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.INBTSerializable;
-import valoeghese.originsgacha.network.packet.S2CUnlockOriginsSyncPacket;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -20,9 +20,25 @@ public interface IUnlockedOrigins extends INBTSerializable<CompoundTag> {
 
 	/**
 	 * Get a list of unlocked origins.
-	 * @return a list containing the resource keys of all unlocked origins.
+	 * @return a copy of the list containing the resource keys of all unlocked origins.
 	 */
-	List<ResourceKey<Origin>> getUnlockedOrigins();
+	List<IUnlockedOriginData> getUnlockedOrigins();
+
+	/**
+	 * Get the unlocked origin data for the given origin.
+	 * @param data the origin to get the unlocked origin data for.
+	 * @return the unlocked origin data for the given origin, or null if the origin is not unlocked.
+	 */
+	@Nullable
+	IUnlockedOriginData getUnlockedOrigin(ResourceKey<Origin> data);
+
+	/**
+	 * Check if the given origin is unlocked.
+	 * @param origin the origin to check.
+	 *               This should be the origin's registry key.
+	 * @return true if the origin is unlocked.
+	 */
+	boolean hasOrigin(ResourceKey<Origin> origin);
 
 	/**
 	 * Get the player owner.

@@ -1,0 +1,8 @@
+{
+  "actions.switch_origin": {
+    "subtitle": "subtitles.origins_gacha.switch_origin",
+    "sounds": [
+      "origins_gacha:switch_origin"
+    ]
+  }
+}

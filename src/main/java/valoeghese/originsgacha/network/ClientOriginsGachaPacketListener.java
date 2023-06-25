@@ -6,7 +6,7 @@ import net.minecraftforge.network.NetworkEvent;
 import org.slf4j.Logger;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.capabilities.UnlockedOrigins;
-import valoeghese.originsgacha.network.packet.S2CUnlockOriginsSyncPacket;
+import valoeghese.originsgacha.network.packet.S2CUnlockedOriginsSyncPacket;
 
 /**
  * Like {@link net.minecraft.client.multiplayer.ClientPacketListener} but for this mod.
@@ -14,7 +14,7 @@ import valoeghese.originsgacha.network.packet.S2CUnlockOriginsSyncPacket;
 public final class ClientOriginsGachaPacketListener {
 	private static final Logger LOGGER = LogUtils.getLogger();
 
-	public static void onUnlockedOriginsSync(S2CUnlockOriginsSyncPacket packet, NetworkEvent.Context context) {
+	public static void onUnlockedOriginsSync(S2CUnlockedOriginsSyncPacket packet, NetworkEvent.Context context) {
 		LOGGER.info("Received " + packet);
 
 		Minecraft.getInstance().tell(() -> {
