@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
+import io.github.apace100.origins.registry.ModItems;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
@@ -13,11 +14,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import valoeghese.originsgacha.ClientEvents;
@@ -33,6 +37,7 @@ import valoeghese.originsgacha.util.Utils;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The selection wheel for switching origins.
@@ -61,14 +66,38 @@ public class OriginSelectScreen extends Screen {
 		Registry<Origin> originRegistry = OriginsAPI.getOriginsRegistry();
 
 		this.availableOrigins = unlockedOrigins.getUnlockedOrigins().stream()
-				.map(k -> new AbstractMap.SimpleEntry<>(k, originRegistry.get(k.getOrigin())))
+				.map(k -> {
+					Origin origin = originRegistry.get(k.getOrigin());
+
+					// if any origin is null this screen cannot be displayed.
+					if (origin == null) {
+						LOGGER.warn("Tried to open OriginSelectScreen but origin " + k.getOrigin().location() + " is null!");
+						this.canDisplay.set(false);
+					}
+
+					return new AbstractMap.SimpleEntry<>(k, origin);
+				})
 				.toList();
+
+		this.requiredOrbsForNext = unlockedOrigins.getRequiredOrbsForNextRoll();
+	}
+
+	private final AtomicBoolean canDisplay = new AtomicBoolean(true);
+
+	/**
+	 * Get whether this screen is allowed to open.
+	 * @return whether this screen is allowed to open.
+	 */
+	public boolean canDisplay() {
+		return canDisplay.get();
 	}
 
 	// origin data to display
 	private final IOriginContainer playerOriginContainer;
 	private final Origin currentOrigin;
 	private final List<? extends Map.Entry<IUnlockedOriginData, Origin>> availableOrigins;
+	private final int requiredOrbsForNext;
+
 	private int page = 0;
 
 	// scaling
@@ -115,8 +144,7 @@ public class OriginSelectScreen extends Screen {
 	}
 
 	/**
-	 * Draw the item icons representing the selectable origins, and (TO-DO) the orb of origin and count in
-	 * the centre.
+	 * Draw the item icons representing the selectable origins, and orb of origin and its count in the centre.
 	 * @param guiStack the {@link PoseStack} for GUI rendering.
 	 * @param centreX the x position of the centre of the origin ring.
 	 * @param centreY the y position of the centre of the origin ring.
@@ -124,7 +152,7 @@ public class OriginSelectScreen extends Screen {
 	 */
 	private void drawIcons(PoseStack guiStack, double centreX, double centreY, double distance) {
 		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
-		float scale = (float) (this.scaleFactor) * 2.0f;
+		float scale = (float) (this.scaleFactor) * (this.height <= 480 ? 1.0f : 2.0f);
 
 		PoseStack stack = RenderSystem.getModelViewStack();
 		stack.pushPose();
@@ -171,6 +199,16 @@ public class OriginSelectScreen extends Screen {
 			}
 		}
 
+		// Render Central Orb and Under-text
+		this.itemRenderer.renderGuiItem(
+				ORB_OF_ORIGIN_STACK,
+				Mth.floor(centreX/scale - 8),
+				Mth.floor(centreY/scale - 8));
+
+		final int orbOfOriginCount = this.playerOriginContainer.getOwner().getInventory().countItem(ModItems.ORB_OF_ORIGIN.get());
+		GuiComponent.drawCenteredString(guiStack, this.font, Component.literal(orbOfOriginCount + "/" + this.requiredOrbsForNext),
+				(int)(centreX/scale), (int)(centreY/scale + 8), 0xFFFFFF);
+
 		stack.popPose();
 	}
 
@@ -192,24 +230,21 @@ public class OriginSelectScreen extends Screen {
 
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.TRIANGLES)) {
-			float shade = highlightedSector == 8 ? 1 : 0.2f;
+		float shade = highlightedSector == 8 ? 1.0f : 0.2f;
 
+		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.TRIANGLES)) {
 			// Inner Circle
 			for (int i = 0; i < nRenderSectors; i++) {
 				double angle = theta * i;
 
-				builder.position(centreX, centreY)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
+				this.drawRenderSector(builder, theta, angle, centreX, centreY, innerButtonSize, shade);
 
-				builder.position(centreX + innerButtonSize * Math.cos(angle + theta), centreY + innerButtonSize * Math.sin(angle + theta))
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				builder.position(centreX + innerButtonSize * Math.cos(angle), centreY + innerButtonSize * Math.sin(angle))
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
+				// use this (and force shade to 0.2) if highlighting around centre button instead of
+				// changing the colour itself.
+//				if (highlightedSector == 8) {
+//					this.drawRenderArc(builder, theta, angle, centreX, centreY,
+//							innerButtonSize, (innerButtonSize + innerEdgeSize) * 0.5, 1.0f);
+//				}
 			}
 
 			int currentOriginSector = this.indexOf(this.currentOrigin) - this.page * nOriginSectors;
@@ -225,40 +260,61 @@ public class OriginSelectScreen extends Screen {
 						)
 				);
 
-				final double cos = Math.cos(angle);
-				final double sin = Math.sin(angle);
-				final double cosNext = Math.cos(angle + theta);
-				final double sinNext = Math.sin(angle + theta);
-
-				// 2, 1, 0
-
-				builder.position(centreX + innerEdgeSize * cos, centreY + innerEdgeSize * sin)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				builder.position(centreX + outerEdgeSize * cosNext, centreY + outerEdgeSize * sinNext)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				builder.position(centreX + outerEdgeSize * cos, centreY + outerEdgeSize * sin)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				// 3, 1, 2
-
-				builder.position(centreX + innerEdgeSize * cosNext, centreY + innerEdgeSize * sinNext)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				builder.position(centreX + outerEdgeSize * cosNext, centreY + outerEdgeSize * sinNext)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
-
-				builder.position(centreX + innerEdgeSize * cos, centreY + innerEdgeSize * sin)
-						.colour(shade, shade, shade, 0.5f)
-						.endVertex();
+				this.drawRenderArc(builder, theta, angle, centreX, centreY, innerEdgeSize, outerEdgeSize, shade);
 			}
 		}
+	}
+
+	private void drawRenderSector(VertexFormats.PositionColour builder, double theta, double angle,
+								  double centreX, double centreY, double radius, float shade) {
+		builder.position(centreX, centreY)
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+
+		builder.position(centreX + radius * Math.cos(angle + theta), centreY + radius * Math.sin(angle + theta))
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+
+		builder.position(centreX + radius * Math.cos(angle), centreY + radius * Math.sin(angle))
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+	}
+
+	private void drawRenderArc(VertexFormats.PositionColour builder, double theta, double angle,
+							   double centreX, double centreY, double innerRadius, double outerRadius,
+							   float shade) {
+		final double cos = Math.cos(angle);
+		final double sin = Math.sin(angle);
+		final double cosNext = Math.cos(angle + theta);
+		final double sinNext = Math.sin(angle + theta);
+
+		// 2, 1, 0
+
+		builder.position(centreX + innerRadius * cos, centreY + innerRadius * sin)
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+
+		builder.position(centreX + outerRadius * cosNext, centreY + outerRadius * sinNext)
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+
+		builder.position(centreX + outerRadius * cos, centreY + outerRadius * sin)
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+
+		// 3, 1, 2
+
+		builder.position(centreX + innerRadius * cosNext, centreY + innerRadius * sinNext)
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+
+		builder.position(centreX + outerRadius * cosNext, centreY + outerRadius * sinNext)
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
+
+		builder.position(centreX + innerRadius * cos, centreY + innerRadius * sin)
+				.colour(shade, shade, shade, 0.5f)
+				.endVertex();
 	}
 
 	/**
@@ -311,6 +367,10 @@ public class OriginSelectScreen extends Screen {
 						this.onClose();
 					}
 				}
+			} else if (selectedButton == 8) {
+				Minecraft.getInstance().getSoundManager().play(
+						SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F)
+				);
 			}
 
 			return true;
@@ -356,6 +416,7 @@ public class OriginSelectScreen extends Screen {
 		return false;
 	}
 
+	private static final ItemStack ORB_OF_ORIGIN_STACK = new ItemStack(ModItems.ORB_OF_ORIGIN.get());
 	private static final Logger LOGGER = LogUtils.getLogger();
 
 	/**

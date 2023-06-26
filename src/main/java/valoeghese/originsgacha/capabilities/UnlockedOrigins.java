@@ -12,6 +12,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -135,6 +136,13 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 	@Override
 	public Player getOwner() {
 		return this.player;
+	}
+
+	@Override
+	public int getRequiredOrbsForNextRoll() {
+		// We start with 2 origins
+		// Follow pattern 1, 1, 2, 2, ...
+		return this.unlockedOrigins.size() / 2;
 	}
 
 	// Capability and Serialisation

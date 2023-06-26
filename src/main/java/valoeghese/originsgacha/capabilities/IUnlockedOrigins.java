@@ -52,6 +52,12 @@ public interface IUnlockedOrigins extends INBTSerializable<CompoundTag> {
 	Player getOwner();
 
 	/**
+	 * Get the number of orbs of origin required for the next roll of the origin gacha wheel.
+	 * @return the number of orbs of origin required for the next roll.
+	 */
+	int getRequiredOrbsForNextRoll();
+
+	/**
 	 * Get the unlocked origins instance for a given player.
 	 * @param player the player to get the unlocked origins instance for.
 	 * @return the instance associated with the given player.

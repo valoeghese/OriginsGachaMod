@@ -43,7 +43,11 @@ public class ClientEvents {
 			if (event.phase == TickEvent.Phase.END) {
 				while (SELECT_ORIGIN.consumeClick()) {
 					if (!(Minecraft.getInstance().screen instanceof OriginSelectScreen)) {
-						Minecraft.getInstance().setScreen(new OriginSelectScreen());
+						OriginSelectScreen originSelectScreen = new OriginSelectScreen();
+
+						if (originSelectScreen.canDisplay()) {
+							Minecraft.getInstance().setScreen(originSelectScreen);
+						}
 					}
 				}
 			}
