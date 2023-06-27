@@ -30,7 +30,7 @@ import valoeghese.originsgacha.capabilities.IUnlockedOriginData;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.network.NetworkManager;
 import valoeghese.originsgacha.network.packet.C2SSwitchOriginPacket;
-import valoeghese.originsgacha.screens.util.VertexFormats;
+import valoeghese.originsgacha.util.VertexFormats;
 import valoeghese.originsgacha.util.Division;
 import valoeghese.originsgacha.util.Utils;
 
@@ -413,6 +413,11 @@ public class OriginSelectScreen extends Screen {
 
 	@Override
 	public boolean isPauseScreen() {
+		return false;
+	}
+
+	@Override
+	public boolean shouldCloseOnEsc() {
 		return false;
 	}
 

@@ -1,4 +1,4 @@
-package valoeghese.originsgacha.screens.util;
+package valoeghese.originsgacha.util;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;

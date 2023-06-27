@@ -1,5 +1,6 @@
 {
   "key.origins_gacha.select": "Select Origin",
   "screens.origins_gacha.select": "Select Origin",
+  "screens.origins_gacha.roll_origin": "Roll a new Origin!",
   "subtitles.origins_gacha.switch_origin": "Player Switches Origin"
 }
