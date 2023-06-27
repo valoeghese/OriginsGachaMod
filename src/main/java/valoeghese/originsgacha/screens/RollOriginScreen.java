@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import valoeghese.originsgacha.screens.components.ButtonBuilder;
+import valoeghese.originsgacha.screens.components.GachaWheel;
 
 /**
  * Screen for rolling the next origin to unlock.
@@ -15,16 +16,20 @@ public class RollOriginScreen extends Screen {
 		super(Component.translatable("screens.origins_gacha.roll_origin"));
 	}
 
+	private GachaWheel wheel;
+
 	@Override
 	protected void init() {
-		this.addWidget(
+		this.wheel = this.addRenderableOnly(new GachaWheel(this.width / 6, 0, this.width / 3, this.height));
+
+		this.addRenderableWidget(
 				new ButtonBuilder()
 						.position(2 * this.width / 3, this.height / 2 - 12)
 						.message(Component.translatable("buttons.origin_gacha.roll"))
 						.build()
 		);
 
-		this.addWidget(
+		this.addRenderableWidget(
 				new ButtonBuilder()
 						.position(2 * this.width / 3, this.height / 2 + 12)
 						.message(CommonComponents.GUI_CANCEL)
@@ -34,7 +39,8 @@ public class RollOriginScreen extends Screen {
 	}
 
 	@Override
-	public void renderBackground(PoseStack pPoseStack, int pVOffset) {
-		this.renderDirtBackground(pVOffset);
+	public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
+		this.renderDirtBackground(0);
+		super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
 	}
 }

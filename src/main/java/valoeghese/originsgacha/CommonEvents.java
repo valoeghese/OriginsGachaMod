@@ -40,8 +40,24 @@ public class CommonEvents {
 		if (event.getEntity() instanceof ServerPlayer player) {
 			if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
 			{
-				// TODO reset cooldowns
+				// reset cooldowns
+				IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(player);
+
+				unlockedOrigins.getUnlockedOrigins().forEach(data -> data.setCooldown(0));
 			}
+		}
+	}
+
+	@SubscribeEvent
+	public static void onPlayerRespawnDataClone(final PlayerEvent.Clone event) {
+		// only run on server and if ORIGIN_GACHA feature flag is enabled.
+		if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled() && event.getEntity() instanceof ServerPlayer)
+		{
+			IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(event.getOriginal());
+			IUnlockedOrigins newUnlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(event.getEntity());
+
+			// copy old data into new data
+			newUnlockedOrigins.deserializeNBT(unlockedOrigins.serializeNBT());
 		}
 	}
 

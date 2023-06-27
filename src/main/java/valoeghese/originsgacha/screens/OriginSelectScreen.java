@@ -368,9 +368,13 @@ public class OriginSelectScreen extends Screen {
 					}
 				}
 			} else if (selectedButton == 8) {
-				Minecraft.getInstance().getSoundManager().play(
+				assert this.minecraft != null;
+
+				this.minecraft.getSoundManager().play(
 						SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F)
 				);
+
+				this.minecraft.setScreen(new RollOriginScreen());
 			}
 
 			return true;
