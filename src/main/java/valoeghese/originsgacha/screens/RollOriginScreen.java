@@ -20,12 +20,14 @@ public class RollOriginScreen extends Screen {
 
 	@Override
 	protected void init() {
-		this.wheel = this.addRenderableOnly(new GachaWheel(this.width / 6, 0, this.width / 3, this.height));
+		final int wheelHalfWidth = this.width / 12;
+		this.wheel = this.addRenderableOnly(new GachaWheel(this.width / 3 - wheelHalfWidth, 0, wheelHalfWidth * 2, this.height));
 
 		this.addRenderableWidget(
 				new ButtonBuilder()
 						.position(2 * this.width / 3, this.height / 2 - 12)
-						.message(Component.translatable("buttons.origin_gacha.roll"))
+						.message(Component.translatable("buttons.origins_gacha.roll"))
+						.centered()
 						.build()
 		);
 
@@ -34,6 +36,7 @@ public class RollOriginScreen extends Screen {
 						.position(2 * this.width / 3, this.height / 2 + 12)
 						.message(CommonComponents.GUI_CANCEL)
 						.action(this::onClose)
+						.centered()
 						.build()
 		);
 	}

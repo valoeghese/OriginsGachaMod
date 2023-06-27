@@ -40,6 +40,7 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 	private final transient Player player;
 	private final transient LazyOptional<IUnlockedOrigins> lazyOptionalOfThis = LazyOptional.of(() -> this);
 	private transient boolean shouldSync;
+	private transient int page;
 
 	private final List<UnlockedOrigin> unlockedOrigins;
 
@@ -143,6 +144,16 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 		// We start with 2 origins
 		// Follow pattern 1, 1, 2, 2, ...
 		return this.unlockedOrigins.size() / 2;
+	}
+
+	@Override
+	public int getPage() {
+		return this.page;
+	}
+
+	@Override
+	public void setPage(int page) {
+		this.page = page;
 	}
 
 	// Capability and Serialisation

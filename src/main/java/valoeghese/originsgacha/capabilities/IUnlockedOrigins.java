@@ -58,6 +58,18 @@ public interface IUnlockedOrigins extends INBTSerializable<CompoundTag> {
 	int getRequiredOrbsForNextRoll();
 
 	/**
+	 * Get the page the player was last viewing. This does not persist across respawns and sessions.
+	 * @return the page the player was last viewing.
+	 */
+	int getPage();
+
+	/**
+	 * Set the page the player was last viewing. This does not persist across respawns and sessions.
+	 * @param page the page the player was last viewing.
+	 */
+	void setPage(int page);
+
+	/**
 	 * Get the unlocked origins instance for a given player.
 	 * @param player the player to get the unlocked origins instance for.
 	 * @return the instance associated with the given player.

@@ -80,6 +80,7 @@ public class OriginSelectScreen extends Screen {
 				.toList();
 
 		this.requiredOrbsForNext = unlockedOrigins.getRequiredOrbsForNextRoll();
+		this.page = unlockedOrigins.getPage();
 	}
 
 	private final AtomicBoolean canDisplay = new AtomicBoolean(true);
@@ -98,7 +99,7 @@ public class OriginSelectScreen extends Screen {
 	private final List<? extends Map.Entry<IUnlockedOriginData, Origin>> availableOrigins;
 	private final int requiredOrbsForNext;
 
-	private int page = 0;
+	private double page = 0;
 
 	// scaling
 	private double scaleFactor = 0.05;
@@ -163,7 +164,7 @@ public class OriginSelectScreen extends Screen {
 		final int currentOriginIndex = this.indexOf(this.currentOrigin);
 
 		for (int i = 0; i < nSectors; i++) {
-			int index = i + this.page * nSectors;
+			int index = i + this.getPage() * nSectors;
 
 			if (index < this.availableOrigins.size()) {
 				double angle = theta * (i - 1.5);
@@ -247,7 +248,7 @@ public class OriginSelectScreen extends Screen {
 //				}
 			}
 
-			int currentOriginSector = this.indexOf(this.currentOrigin) - this.page * nOriginSectors;
+			int currentOriginSector = this.indexOf(this.currentOrigin) - this.getPage() * nOriginSectors;
 
 			// Outer Circle
 			for (int i = 0; i < nRenderSectors; i++) {
@@ -350,7 +351,7 @@ public class OriginSelectScreen extends Screen {
 
 		if (button == 0 && selectedButton > -1) {
 			if (selectedButton < 8) {
-				int index = selectedButton + this.page * 8;
+				int index = selectedButton + this.getPage() * 8;
 
 				if (index < this.availableOrigins.size()) {
 					var originPair = this.availableOrigins.get(index);
@@ -381,6 +382,30 @@ public class OriginSelectScreen extends Screen {
 		}
 
 		return false;
+	}
+
+	// TODO a way to scroll without needing a scroll wheel. A/D? < > Buttons?
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+		if (delta < 0) {
+			this.page = Math.max(0, this.page + delta);
+		} else {
+			this.page = Math.min(this.getLastPage(), this.page + delta);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get the last page that exists in this origin select screen.
+	 * @return the last page that exists in this origin select screen.
+	 */
+	private int getLastPage() {
+		return (this.availableOrigins.size() - 1) / 8 + 1;
+	}
+
+	private int getPage() {
+		return (int) this.page;
 	}
 
 	/**
@@ -415,6 +440,8 @@ public class OriginSelectScreen extends Screen {
 		return -1;
 	}
 
+	// Non-Render Non-Input Screen Methods
+
 	@Override
 	public boolean isPauseScreen() {
 		return false;
@@ -423,6 +450,15 @@ public class OriginSelectScreen extends Screen {
 	@Override
 	public boolean shouldCloseOnEsc() {
 		return false;
+	}
+
+	@Override
+	public void onClose() {
+		if (this.minecraft != null && this.minecraft.player != null) {
+			IUnlockedOrigins.getUnlockedOrigins(this.minecraft.player).setPage(this.getPage());
+		}
+
+		super.onClose();
 	}
 
 	private static final ItemStack ORB_OF_ORIGIN_STACK = new ItemStack(ModItems.ORB_OF_ORIGIN.get());
