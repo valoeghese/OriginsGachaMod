@@ -10,7 +10,7 @@
     "equip.PlayerMixin"
   ],
   "client": [
-    "screens.ChooseOriginScreenMixin"
+    "gacha.ChooseOriginScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

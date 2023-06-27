@@ -385,6 +385,7 @@ public class OriginSelectScreen extends Screen {
 	}
 
 	// TODO a way to scroll without needing a scroll wheel. A/D? < > Buttons?
+	// Likely a <  Page 1/1   > design
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		if (delta < 0) {
