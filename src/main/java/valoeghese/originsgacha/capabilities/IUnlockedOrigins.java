@@ -64,7 +64,7 @@ public interface IUnlockedOrigins extends INBTSerializable<CompoundTag> {
 	 */
 	static IUnlockedOrigins getUnlockedOrigins(Player player) {
 		return player.getCapability(UnlockedOrigins.CAPABILITY).resolve().orElseThrow(
-				() -> new IllegalStateException("No unlocked origins capability for " + player.getName())
+				() -> new IllegalStateException("No unlocked origins capability for " + player.getName().getString())
 		);
 	}
 }
