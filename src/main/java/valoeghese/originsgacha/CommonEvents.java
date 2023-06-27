@@ -63,6 +63,9 @@ public class CommonEvents {
 
 			// copy old data into new data
 			newUnlockedOrigins.deserializeNBT(unlockedOrigins.serializeNBT());
+
+			// forge unfuckery
+			event.getOriginal().invalidateCaps(); // need this to unload capabilities too :(
 		}
 	}
 
