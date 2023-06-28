@@ -7,13 +7,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import valoeghese.originsgacha.util.VertexFormats;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * A gacha wheel that spins vertically and lands on a target element.
@@ -43,6 +44,13 @@ public class GachaWheel implements Widget {
 
 	private final int defaultOffset;
 	private double offset;
+
+	// rolling target stuff
+	private int speed = 1;
+	private int targetIndex;
+	private int nextTargetIndex;
+	private float ticksTillSlowDown;
+	private Runnable afterRoll = NOT_ROLLING;
 
 	private final List<ItemStack> elements = new ArrayList<>();
 
@@ -97,13 +105,73 @@ public class GachaWheel implements Widget {
 		// Draw the items
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 
+		int halfwayIndex = startElement;
+
 		for(int i = startElement, y = startY; y < this.height; i--, y += this.sectionHeight) {
-			ItemStack stack = this.elements.get(Mth.positiveModulo(i, this.elements.size()));
+			ItemStack stack = this.elements.get(this.getElementIndex(i, 0));
 			this.itemRenderer.renderGuiItem(stack, this.x + this.width/2 - 8, this.y + y + this.width/2 - 8);
+			halfwayIndex = i;
 		}
 
-		// temp scroll
-		this.offset += 0.1;
+		// average of start and last is the halfway index
+		halfwayIndex = (startElement + halfwayIndex) / 2;
+		// Wrap halfway index.
+		halfwayIndex = this.getElementIndex(halfwayIndex, 4);
+
+		// scroll (partialTick is time since last frame in ticks)
+		this.offset += partialTick * this.speed;
+
+		if (this.afterRoll != NOT_ROLLING) {
+			if (this.ticksTillSlowDown > 0) {
+				if (this.speed < TOP_SPEED) {
+					this.speed++;
+				}
+			} else {
+				if (this.speed <= 3) {
+					if (this.nextTargetIndex == halfwayIndex) {
+						this.nextTargetIndex = switch (this.speed) {
+							case 3 -> this.getElementIndex(this.targetIndex - 3, 4);
+							case 2 -> this.getElementIndex(this.targetIndex - 1, 4);
+							default -> this.targetIndex;
+						};
+
+						this.speed--;
+
+						if (this.speed == 0) {
+							// wait 1 second then run the after-roll code
+							final Runnable afterRoll = this.afterRoll;
+							this.afterRoll = NOT_ROLLING;
+
+							new Thread(() -> {
+								try {
+									Thread.sleep(1000);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+
+								Minecraft.getInstance().tell(afterRoll);
+							}).start();
+						}
+					}
+				} else {
+					this.speed = (int) (TOP_SPEED - this.ticksTillSlowDown/3.0f);
+				}
+			}
+
+			this.ticksTillSlowDown -= partialTick;
+		}
+	}
+
+	/**
+	 * Get the element list index of the stack at wheel index i, which can be any number. Outside the range
+	 * of {@linkplain GachaWheel#elements this wheel's elements}, the pattern will loop.
+	 * @param i the index to get the element list index at.
+	 * @param minSpaces the minimum number of spaces to occur in the output. If above 0, some indices returned
+	 *                     may not exist if the list is too small.
+	 * @return the element list index to get the stack from.
+	 */
+	private int getElementIndex(int i, int minSpaces) {
+		return Mth.positiveModulo(i, Math.max(minSpaces, this.elements.size()));
 	}
 
 	private int getOffset() {
@@ -121,12 +189,21 @@ public class GachaWheel implements Widget {
 	/**
 	 * Play the wheel roll animation and land on the given stack.
 	 * @param stack the item stack to land on.
+	 * @param afterRoll the code to run after the roll is finished.
 	 * @return whether the roll was successful. The roll is successful if the given {@link ItemStack} is present on the
 	 * wheel.
 	 */
-	public boolean roll(ItemStack stack) {
-		Minecraft.getInstance().gui.getChat().addMessage(Component.literal("rolling not implemented, giving fail response (but should be unlocked)"));
-		return false;
+	public boolean roll(ItemStack stack, Runnable afterRoll) {
+		int index = this.elements.indexOf(stack);
+
+		if (index == -1) {
+			return false;
+		} else {
+			this.targetIndex = index;
+			this.nextTargetIndex = index;
+			this.ticksTillSlowDown = RANDOM.nextInt(20 * 7, 20 * 9);
+			return true;
+		}
 	}
 
 	/**
@@ -143,4 +220,9 @@ public class GachaWheel implements Widget {
 	private static final float OUTER_SHADE = 0.776f;
 
 	private static final int SPACING = 2;
+
+	private static final @Nullable Runnable NOT_ROLLING = null;
+	private static final float TOP_SPEED = 20.0f;
+
+	private static final Random RANDOM = new Random();
 }

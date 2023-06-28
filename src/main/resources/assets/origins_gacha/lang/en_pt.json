@@ -1,6 +1,7 @@
 {
   "key.origins_gacha.select": "Select yer Origin",
   "screens.origins_gacha.select": "Select yer Origin",
+  "screens.origins_gacha.new_origin": "Ye've Uncovered a New Origin!",
   "screens.origins_gacha.no_origins_layer": "Ain't no Origins layers here!",
   "screens.origins_gacha.no_origins_layer.description": "Ye need to 'ave the origins:origins layer in yer sea or this 'ere vessel can't sail.",
   "screens.origins_gacha.roll_origin": "Gamble fer yer nex' Origin",

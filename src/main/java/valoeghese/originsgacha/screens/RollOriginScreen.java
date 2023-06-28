@@ -1,6 +1,8 @@
 package valoeghese.originsgacha.screens;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.github.apace100.origins.Origins;
+import io.github.apace100.origins.screen.OriginDisplayScreen;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
 import io.github.edwinmindcraft.origins.api.origin.OriginLayer;
@@ -96,7 +98,7 @@ public class RollOriginScreen extends Screen {
 	public void rollOrigin(ResourceKey<Origin> origin) {
 		assert this.minecraft != null : "We must be initialised";
 
-		// play the sound
+		// play rolling origin sound
 		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGacha.SOUND_ROLL_ORIGIN, 1.0F));
 
 		// roll the wheel to land on the given origin
@@ -111,11 +113,27 @@ public class RollOriginScreen extends Screen {
 
 		ItemStack stack = originInstance.getIcon();
 
-		if (!this.wheel.roll(stack)) {
+		if (!this.wheel.roll(stack, () -> this.afterRoll(origin))) {
 			// add chat message saying that error: the wheel does not contain the unlocked origin
 			this.minecraft.gui.getChat().addMessage(Component.literal("Error: wheel does not contain the unlocked origin!"));
 			this.onClose();
 		}
+	}
+
+	private void afterRoll(ResourceKey<Origin> origin) {
+		assert this.minecraft != null : "We must be initialised";
+
+		// play unlocked origin sound
+		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGacha.SOUND_UNLOCK_ORIGIN, 1.0F));
+
+		OriginDisplayScreen screen = new OriginDisplayScreen(Component.translatable("origins_gacha.screens.new_origin"), true);
+		screen.showOrigin(
+				OriginsAPI.getOriginsRegistry().getHolderOrThrow(origin),
+				OriginsAPI.getLayersRegistry().getHolderOrThrow(OriginsGacha.ORIGIN_LAYER),
+				false
+		);
+
+		this.minecraft.setScreen(screen);
 	}
 
 	/**
