@@ -388,10 +388,10 @@ public class OriginSelectScreen extends Screen {
 	// Likely a <  Page 1/1   > design
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-		if (delta < 0) {
-			this.page = Math.max(0, this.page + delta);
+		if (delta > 0) {
+			this.page = Math.max(0, this.page - delta);
 		} else {
-			this.page = Math.min(this.getLastPage(), this.page + delta);
+			this.page = Math.min(this.getLastPage(), this.page - delta);
 		}
 
 		return true;
@@ -402,7 +402,7 @@ public class OriginSelectScreen extends Screen {
 	 * @return the last page that exists in this origin select screen.
 	 */
 	private int getLastPage() {
-		return (this.availableOrigins.size() - 1) / 8 + 1;
+		return (this.availableOrigins.size() - 1) / 8;
 	}
 
 	private int getPage() {

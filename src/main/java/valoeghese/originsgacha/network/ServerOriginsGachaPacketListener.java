@@ -67,6 +67,7 @@ public final class ServerOriginsGachaPacketListener {
 
 					// this will automatically sync to the client too
 					originContainer.setOrigin(OriginsGacha.ORIGIN_LAYER, packet.getOrigin());
+					originContainer.synchronize();
 				}
 			}
 		}

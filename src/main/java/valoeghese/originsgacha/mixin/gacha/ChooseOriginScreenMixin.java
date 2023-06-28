@@ -3,6 +3,7 @@ package valoeghese.originsgacha.mixin.gacha;
 import io.github.apace100.origins.screen.ChooseOriginScreen;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
 import io.github.edwinmindcraft.origins.api.origin.OriginLayer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -14,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import valoeghese.originsgacha.OriginsGacha;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
+import valoeghese.originsgacha.impl.ModifiableScreen;
+import valoeghese.originsgacha.impl.OriginChoiceModificationCalls;
 
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +25,7 @@ import java.util.Objects;
  * Edit the choose origin screen to only have the randomly selected initial unlocked origins.
  */
 @Mixin(value = ChooseOriginScreen.class, remap = false)
-public abstract class ChooseOriginScreenMixin extends Screen {
+public abstract class ChooseOriginScreenMixin extends Screen implements ModifiableScreen {
 	protected ChooseOriginScreenMixin(Component pTitle) {
 		super(pTitle);
 	}
@@ -32,29 +35,37 @@ public abstract class ChooseOriginScreenMixin extends Screen {
 	@Shadow @Final private List<Holder<OriginLayer>> layerList;
 	@Shadow @Final private int currentLayerIndex;
 
+	@Shadow private int maxSelection;
+
+	/**
+	 * Variable which stores whether this screen has been modified by a third party (i.e. us).
+	 * Modifications from mods that don't interact with our mod to set this will not have an effect, so don't guarantee
+	 * this will catch all third party modifications.
+	 */
 	private boolean origins_gacha_modifiedChooseOriginScreen;
 
 	@Inject(at = @At("HEAD"), method = "getCurrentOriginInternal")
 	private void onGetCurrentOrigin(CallbackInfoReturnable<Holder<Origin>> cir) {
-		if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled() && !this.origins_gacha_modifiedChooseOriginScreen)
+		if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
 		{
-			// Holder.is(ResourceKey) in Holder.Reference uses reference comparison so we need to compare resource location
-			if (this.layerList.get(this.currentLayerIndex).is(OriginsGacha.ORIGIN_LAYER.location())) {
-				System.out.println("Modifying Origin Layer Selection."); //debug
-				assert this.minecraft != null; // hm yes very safety
-				assert this.minecraft.player != null; // the player should never be null in game. Why tf would it be null?
-				IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(this.minecraft.player);
+			int originalOriginCount = this.originSelection.size();
+			OriginChoiceModificationCalls.onGetCurrentOrigin(this, this.originSelection, this.layerList, this.currentLayerIndex);
 
-				// remove origins if origin is not unlocked yet
-				this.originSelection.removeIf(originHolder -> !unlockedOrigins.hasOrigin(
-						Objects.requireNonNull(originHolder.unwrapKey().orElse(null), "Missing Origin Key")
-				));
-
-				// TODO stop cheesing on server side
-				// TODO if origin list is empty wait until server sends us the data
+			// if origin selection modified, reflect that in the variable storing the number of selectable origins.
+			// no random origin.
+			if (this.originSelection.size() != originalOriginCount) {
+				this.maxSelection = this.originSelection.size();
 			}
-
-			this.origins_gacha_modifiedChooseOriginScreen = true;
 		}
+	}
+
+	@Override
+	public boolean isModified() {
+		return this.origins_gacha_modifiedChooseOriginScreen;
+	}
+
+	@Override
+	public void setModified(boolean modified) {
+		this.origins_gacha_modifiedChooseOriginScreen = modified;
 	}
 }

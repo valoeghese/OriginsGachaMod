@@ -21,8 +21,8 @@ public class RollOriginScreen extends Screen {
 	@Override
 	protected void init() {
 		// TODO disable button if not enough orbs of origin, with tooltip saying "N more orbs of origin required to spin the wheel! (M/T)"
-		final int wheelHalfWidth = this.width / 12;
-		this.wheel = this.addRenderableOnly(new GachaWheel(this.width / 3 - wheelHalfWidth, 0, wheelHalfWidth * 2, this.height));
+		final int wheelCentrePos = (2 * this.width / 3 - 100) / 2;
+		this.wheel = this.addRenderableOnly(new GachaWheel(wheelCentrePos - 20, 0, 40, this.height));
 
 		this.addRenderableWidget(
 				new ButtonBuilder()
