@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
 import io.github.edwinmindcraft.origins.api.registry.OriginsDynamicRegistries;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -12,7 +13,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import valoeghese.originsgacha.network.NetworkManager;
 import valoeghese.originsgacha.network.packet.S2CUnlockedOriginsSyncPacket;
+import valoeghese.originsgacha.screens.RollOriginScreen;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,6 +93,19 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 	}
 
 	@Override
+	public void unlockOrigin(ResourceKey<Origin> origin) {
+		UnlockedOrigin unlocked = new UnlockedOrigin(origin, this.getGameTime());
+		this.unlockedOrigins.add(unlocked);
+
+		if (this.player instanceof ServerPlayer player) {
+			NetworkManager.sendToPlayer(player, new S2CUnlockedOriginsSyncPacket(
+					S2CUnlockedOriginsSyncPacket.UpdateType.ADD_ORIGINS,
+					List.of(unlocked.serializeSyncNBT())
+			));
+		}
+	}
+
+	@Override
 	public void sync() {
 		this.shouldSync = true;
 	}
@@ -121,6 +135,16 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 			}
 		} else {
 			packet.getOrigins().stream().map(this::readUnlockedOrigin).forEach(this.unlockedOrigins::add);
+		}
+
+		// if an ADD_ORIGINS packet and on the roll screen, unlock that origin on the screen
+		if (!packet.getOrigins().isEmpty() && packet.getUpdateType() == S2CUnlockedOriginsSyncPacket.UpdateType.ADD_ORIGINS) {
+			if (Minecraft.getInstance().screen instanceof RollOriginScreen screen) {
+				// yes i'm deserialising a second time
+				// yes this is less efficient
+				// no it's not inefficient enough to cause issues, so the code stays
+				screen.rollOrigin(this.readUnlockedOrigin(packet.getOrigins().get(0)).getOrigin());
+			}
 		}
 	}
 

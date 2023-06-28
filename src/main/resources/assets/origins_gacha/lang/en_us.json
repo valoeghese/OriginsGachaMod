@@ -1,7 +1,13 @@
 {
   "key.origins_gacha.select": "Select Origin",
   "screens.origins_gacha.select": "Select Origin",
+  "screens.origins_gacha.no_origins_layer": "No Origins Layer?!",
+  "screens.origins_gacha.no_origins_layer.description": "This world doesn't have the origins:origins layer. This mod requires it to be present in order to work.",
   "screens.origins_gacha.roll_origin": "Roll a new Origin!",
+  "screens.origins_gacha.roll_origin.all_origins_unlocked": "You have unlocked all origins!",
   "buttons.origins_gacha.roll": "Roll!",
-  "subtitles.origins_gacha.switch_origin": "Player Switches Origin"
+  "buttons.origins_gacha.roll.not_enough": "%s more orbs of origin required to spin the wheel! (%s/%s)",
+  "subtitles.origins_gacha.switch_origin": "Player Switches Origin",
+  "subtitles.origins_gacha.rolling_origin": "Epic Zelda Music",
+  "subtitles.origins_gacha.receive_rolled_origin": "Unlocked New Origin!"
 }

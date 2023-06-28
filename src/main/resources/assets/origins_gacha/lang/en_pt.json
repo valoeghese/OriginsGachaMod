@@ -1,7 +1,13 @@
 {
   "key.origins_gacha.select": "Select yer Origin",
   "screens.origins_gacha.select": "Select yer Origin",
+  "screens.origins_gacha.no_origins_layer": "Ain't no Origins layers here!",
+  "screens.origins_gacha.no_origins_layer.description": "Ye need to 'ave the origins:origins layer in yer sea or this 'ere vessel can't sail.",
   "screens.origins_gacha.roll_origin": "Gamble fer yer nex' Origin",
+  "screens.origins_gacha.roll_origin.all_origins_unlocked": "Ye 'ave unlocked all the Origins!",
   "buttons.origins_gacha.roll": "Roll ye, if ye dare!",
-  "subtitles.origins_gacha.switch_origin": "Old Scallywag here be switchin' 'is Origin"
+  "buttons.origins_gacha.roll.not_enough": "Ye must bequeath %s more orbs o' origin to roll yer fate! (%s/%s)",
+  "subtitles.origins_gacha.switch_origin": "Old Scallywag here be switchin' 'is Origin",
+  "subtitles.origins_gacha.rolling_origin": "Entrancin' Tune o' the Legend o' Zelda",
+  "subtitles.origins_gacha.receive_rolled_origin": "Receiv'd New Origin!"
 }

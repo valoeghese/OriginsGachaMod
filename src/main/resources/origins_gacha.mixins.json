@@ -7,7 +7,8 @@
     "equip.AbstractContainerMenuMixin",
     "equip.ArmourItemMixin",
     "equip.InventoryMenuMixin",
-    "equip.PlayerMixin"
+    "equip.PlayerMixin",
+    "gacha.OrbOfOriginItemMixin"
   ],
   "client": [
     "gacha.ChooseOriginScreenMixin"

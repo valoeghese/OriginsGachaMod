@@ -46,6 +46,12 @@ public interface IUnlockedOrigins extends INBTSerializable<CompoundTag> {
 	boolean hasOrigin(ResourceKey<Origin> origin);
 
 	/**
+	 * Unlock the given origin.
+	 * @param origin the origin to unlock.
+	 */
+	void unlockOrigin(ResourceKey<Origin> origin);
+
+	/**
 	 * Get the player owner.
 	 * @return the player that owns this instance. The unlocked origins belong to them.
 	 */

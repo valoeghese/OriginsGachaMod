@@ -206,7 +206,7 @@ public class OriginSelectScreen extends Screen {
 				Mth.floor(centreX/scale - 8),
 				Mth.floor(centreY/scale - 8));
 
-		final int orbOfOriginCount = this.playerOriginContainer.getOwner().getInventory().countItem(ModItems.ORB_OF_ORIGIN.get());
+		final int orbOfOriginCount = this.getOrbOfOriginCount();
 		GuiComponent.drawCenteredString(guiStack, this.font, Component.literal(orbOfOriginCount + "/" + this.requiredOrbsForNext),
 				(int)(centreX/scale), (int)(centreY/scale + 8), 0xFFFFFF);
 
@@ -375,7 +375,7 @@ public class OriginSelectScreen extends Screen {
 						SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F)
 				);
 
-				this.minecraft.setScreen(new RollOriginScreen());
+				this.minecraft.setScreen(new RollOriginScreen(this::getOrbOfOriginCount, this.requiredOrbsForNext));
 			}
 
 			return true;
@@ -395,6 +395,13 @@ public class OriginSelectScreen extends Screen {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the number of orbs of origin in the player's inventory.
+	 */
+	private int getOrbOfOriginCount() {
+		return this.playerOriginContainer.getOwner().getInventory().countItem(ModItems.ORB_OF_ORIGIN.get());
 	}
 
 	/**

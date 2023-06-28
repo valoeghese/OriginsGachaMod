@@ -4,5 +4,17 @@
     "sounds": [
       "origins_gacha:switch_origin"
     ]
+  },
+  "actions.rolling_origin": {
+    "subtitle": "subtitles.origins_gacha.rolling_origin",
+    "sounds": [
+      "origins_gacha:rolling_origin"
+    ]
+  },
+  "events.receive_rolled_origin": {
+    "subtitle": "subtitles.origins_gacha.receive_rolled_origin",
+    "sounds": [
+      "origins_gacha:receive_rolled_origin"
+    ]
   }
 }

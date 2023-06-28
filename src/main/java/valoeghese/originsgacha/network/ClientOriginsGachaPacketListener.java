@@ -6,6 +6,7 @@ import net.minecraftforge.network.NetworkEvent;
 import org.slf4j.Logger;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.capabilities.UnlockedOrigins;
+import valoeghese.originsgacha.impl.ChooseOriginScreenAccess;
 import valoeghese.originsgacha.network.packet.S2CUnlockedOriginsSyncPacket;
 
 /**
@@ -23,6 +24,11 @@ public final class ClientOriginsGachaPacketListener {
 
 			if (container instanceof UnlockedOrigins impl) {
 				impl.onSync(packet);
+			}
+
+			// if the screen is a choose origin screen and it's not yet been modified (and should be), modify it.
+			if (Minecraft.getInstance().screen instanceof ChooseOriginScreenAccess chooseOriginScreen) {
+				chooseOriginScreen.correctDisplayedOrigins(true);
 			}
 		});
 	}
