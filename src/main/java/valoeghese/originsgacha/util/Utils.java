@@ -1,5 +1,8 @@
 package valoeghese.originsgacha.util;
 
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -31,6 +34,39 @@ public final class Utils {
 		return hours > 0 ?
 				String.format("%02d:%02d:%02d", hours, minutes, seconds) :
 				String.format("%02d:%02d", minutes, seconds);
+	}
+
+	/**
+	 * Remove the given number of items of the given type from the inventory.
+	 * @param inventory the inventory to remove items from.
+	 * @param item the type of item to remove.
+	 * @param count the number of items to remove from the inventory. Will remove less than this count if
+	 *              not enough items present.
+	 * @return the actual number of items removed.
+	 */
+	public static int removeItems(Inventory inventory, Item item, int count) {
+		ItemStack tempStack = new ItemStack(item);
+		int removedItems = 0;
+
+		while (count > 0) {
+			int slot = inventory.findSlotMatchingItem(tempStack);
+
+			// If no slot, break.
+			if (slot == -1) {
+				break;
+			}
+
+			ItemStack stackInSlot = inventory.getItem(slot);
+
+			int amountToRemove = Math.min(count, stackInSlot.getCount());
+			inventory.removeItem(slot, amountToRemove);
+
+			// update counts
+			count -= amountToRemove;
+			removedItems += amountToRemove;
+		}
+
+		return removedItems;
 	}
 
 	@FunctionalInterface

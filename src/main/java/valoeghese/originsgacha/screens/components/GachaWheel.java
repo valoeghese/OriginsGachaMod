@@ -19,6 +19,7 @@ import java.util.Random;
 /**
  * A gacha wheel that spins vertically and lands on a target element.
  */
+// TODO clean up animation code
 public class GachaWheel implements Widget {
 	public GachaWheel(ItemRenderer itemRenderer, int x, int y, int width, int height) {
 		this.itemRenderer = itemRenderer;
@@ -50,6 +51,7 @@ public class GachaWheel implements Widget {
 	private int targetIndex;
 	private int nextTargetIndex;
 	private float ticksTillSlowDown;
+	private boolean endgame; // hack for making sure it ends when passing the actual element
 	private Runnable afterRoll = NOT_ROLLING;
 
 	private final List<ItemStack> elements = new ArrayList<>();
@@ -100,6 +102,15 @@ public class GachaWheel implements Widget {
 				// inner
 				this.drawRect(builder, leftBoxEdge + 1, topBoxEdge + 1, boxWidth - 2, boxWidth - 2, INNER_SHADE);
 			}
+
+			// draw centre box
+			final int outerWidth = 2;
+			final int centreYStart = this.height / 2 - this.width / 2;
+
+			this.drawRect(builder, this.x - outerWidth, centreYStart - outerWidth, this.width + outerWidth * 2, outerWidth, 1.0f, 0.7f, 0.0f);
+			this.drawRect(builder, this.x - outerWidth, centreYStart + this.width, this.width + outerWidth * 2, outerWidth, 1.0f, 0.7f, 0.0f);
+			this.drawRect(builder, this.x - outerWidth, centreYStart, outerWidth, this.width, 1.0f, 0.7f, 0.0f);
+			this.drawRect(builder, this.x + this.width, centreYStart, outerWidth, this.width, 1.0f, 0.7f, 0.0f);
 		}
 
 		// Draw the items
@@ -127,8 +138,20 @@ public class GachaWheel implements Widget {
 					this.speed++;
 				}
 			} else {
+				// Be precise for last few steps down.
 				if (this.speed <= 3) {
-					if (this.nextTargetIndex == halfwayIndex) {
+					if (this.nextTargetIndex == halfwayIndex || this.endgame) {
+						// for speed == 1, land exactly as possible
+						if (this.speed == 1) {
+							this.endgame = true;
+
+							// if on actual index and not yet at default offset
+							if (startY < this.defaultOffset && this.nextTargetIndex == halfwayIndex ) {
+								return; // cooldown thing doesn't matter, so just skip
+							}
+						}
+
+						// Positions to expect for next target for slowing down.
 						this.nextTargetIndex = switch (this.speed) {
 							case 3 -> this.getElementIndex(this.targetIndex - 3, 4);
 							case 2 -> this.getElementIndex(this.targetIndex - 1, 4);
@@ -179,11 +202,15 @@ public class GachaWheel implements Widget {
 	}
 
 	private void drawRect(VertexFormats.PositionColour builder, float x, float y, float w, float h, float shade) {
+		this.drawRect(builder, x, y, w, h, shade, shade, shade);
+	}
+
+	private void drawRect(VertexFormats.PositionColour builder, float x, float y, float w, float h, float r, float g, float b) {
 		// draw anti-clockwise due to how minecraft culls faces.
-		builder.position(x, y).colour(shade, shade, shade).endVertex()
-				.position(x, y + h).colour(shade, shade, shade).endVertex()
-				.position(x + w, y + h).colour(shade, shade, shade).endVertex()
-				.position(x + w, y).colour(shade, shade, shade).endVertex();
+		builder.position(x, y).colour(r, g, b).endVertex()
+				.position(x, y + h).colour(r, g, b).endVertex()
+				.position(x + w, y + h).colour(r, g, b).endVertex()
+				.position(x + w, y).colour(r, g, b).endVertex();
 	}
 
 	/**
@@ -194,11 +221,20 @@ public class GachaWheel implements Widget {
 	 * wheel.
 	 */
 	public boolean roll(ItemStack stack, Runnable afterRoll) {
-		int index = this.elements.indexOf(stack);
+		int index = -1;
+
+		// itemstack doesn't override equals. Manual search for stack.
+		for (int i = 0; i < this.elements.size(); i++) {
+			if (stack.sameItemStackIgnoreDurability(this.elements.get(i))) {
+				index = i;
+				break;
+			}
+		}
 
 		if (index == -1) {
 			return false;
 		} else {
+			this.afterRoll = afterRoll;
 			this.targetIndex = index;
 			this.nextTargetIndex = index;
 			this.ticksTillSlowDown = RANDOM.nextInt(20 * 7, 20 * 9);

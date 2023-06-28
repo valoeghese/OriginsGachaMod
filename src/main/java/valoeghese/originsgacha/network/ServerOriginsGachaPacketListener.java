@@ -21,6 +21,7 @@ import valoeghese.originsgacha.capabilities.IUnlockedOriginData;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.network.packet.C2SRollOriginPacket;
 import valoeghese.originsgacha.network.packet.C2SSwitchOriginPacket;
+import valoeghese.originsgacha.util.Utils;
 
 import java.util.List;
 import java.util.Objects;
@@ -46,10 +47,13 @@ public final class ServerOriginsGachaPacketListener {
 
 			if (player.getInventory().countItem(ModItems.ORB_OF_ORIGIN.get()) >= unlockedOrigins.getRequiredOrbsForNextRoll()) {
 				// remove orbs of origin
-				player.getInventory().removeItem(new ItemStack(
-						ModItems.ORB_OF_ORIGIN.get(),
-						unlockedOrigins.getRequiredOrbsForNextRoll()
-				));
+				int requiredOrbs = unlockedOrigins.getRequiredOrbsForNextRoll();
+				int spentOrbs = Utils.removeItems(player.getInventory(), ModItems.ORB_OF_ORIGIN.get(), requiredOrbs);
+
+				if (spentOrbs < requiredOrbs) {
+					LOGGER.warn("Spent less than the required number of items to pay for roll: {} < {}.",
+							spentOrbs, requiredOrbs);
+				}
 
 				// pick new origin to unlock
 				OriginLayer originContainerOpt = OriginsAPI.getLayersRegistry(context.getSender().server)

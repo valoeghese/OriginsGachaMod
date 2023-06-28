@@ -33,6 +33,7 @@ import java.util.function.IntSupplier;
  * Screen for rolling the next origin to unlock.
  * Note: the client already knows which origin is going to be picked when rolling.
  */
+// TODO copy gacha wheel data across resizes so it doesn't just stop the roll
 public class RollOriginScreen extends Screen {
 	public RollOriginScreen(IntSupplier orbsOfOrigin, int requiredOrbs) {
 		super(Component.translatable("screens.origins_gacha.roll_origin"));
