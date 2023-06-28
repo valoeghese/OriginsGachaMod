@@ -102,23 +102,15 @@ public class GachaWheel implements Widget {
 				// inner
 				this.drawRect(builder, leftBoxEdge + 1, topBoxEdge + 1, boxWidth - 2, boxWidth - 2, INNER_SHADE);
 			}
-
-			// draw centre box
-			final int outerWidth = 2;
-			final int centreYStart = this.height / 2 - this.width / 2;
-
-			this.drawRect(builder, this.x - outerWidth, centreYStart - outerWidth, this.width + outerWidth * 2, outerWidth, 1.0f, 0.7f, 0.0f);
-			this.drawRect(builder, this.x - outerWidth, centreYStart + this.width, this.width + outerWidth * 2, outerWidth, 1.0f, 0.7f, 0.0f);
-			this.drawRect(builder, this.x - outerWidth, centreYStart, outerWidth, this.width, 1.0f, 0.7f, 0.0f);
-			this.drawRect(builder, this.x + this.width, centreYStart, outerWidth, this.width, 1.0f, 0.7f, 0.0f);
 		}
 
 		// Draw the items
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 
 		int halfwayIndex = startElement;
+		int halfwayCount = 0;
 
-		for(int i = startElement, y = startY; y < this.height; i--, y += this.sectionHeight) {
+		for(int i = startElement, y = startY; y < this.height; i--, halfwayCount++, y += this.sectionHeight) {
 			ItemStack stack = this.elements.get(this.getElementIndex(i, 0));
 			this.itemRenderer.renderGuiItem(stack, this.x + this.width/2 - 8, this.y + y + this.width/2 - 8);
 			halfwayIndex = i;
@@ -126,8 +118,24 @@ public class GachaWheel implements Widget {
 
 		// average of start and last is the halfway index
 		halfwayIndex = (startElement + halfwayIndex) / 2;
+		final int halfwayIndexOffset = halfwayCount / 2;
+
 		// Wrap halfway index.
-		halfwayIndex = this.getElementIndex(halfwayIndex, 4);
+		halfwayIndex = this.getElementIndex(halfwayIndex, 3);
+
+		// Draw centre box
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+
+		try (VertexFormats.PositionColour builder = VertexFormats.drawPositionColour(VertexFormat.Mode.QUADS)) {
+			final int outerWidth = 2;
+			final int centreYStart = this.defaultOffset + halfwayIndexOffset * this.sectionHeight;
+
+			this.drawRect(builder, this.x - outerWidth, centreYStart - outerWidth, this.width + outerWidth * 2, outerWidth, 1.0f, 0.7f, 0.0f);
+			this.drawRect(builder, this.x - outerWidth, centreYStart + this.width, this.width + outerWidth * 2, outerWidth, 1.0f, 0.7f, 0.0f);
+			this.drawRect(builder, this.x - outerWidth, centreYStart, outerWidth, this.width, 1.0f, 0.7f, 0.0f);
+			this.drawRect(builder, this.x + this.width, centreYStart, outerWidth, this.width, 1.0f, 0.7f, 0.0f);
+		}
+
 
 		// scroll (partialTick is time since last frame in ticks)
 		this.offset += partialTick * this.speed;
@@ -139,10 +147,10 @@ public class GachaWheel implements Widget {
 				}
 			} else {
 				// Be precise for last few steps down.
-				if (this.speed <= 3) {
+				if (this.speed <= 4) {
 					if (this.nextTargetIndex == halfwayIndex || this.endgame) {
-						// for speed == 1, land exactly as possible
-						if (this.speed == 1) {
+						// for last lot of speed, land exactly as possible
+						if (this.speed < 3) {
 							this.endgame = true;
 
 							// if on actual index and not yet at default offset
@@ -153,8 +161,8 @@ public class GachaWheel implements Widget {
 
 						// Positions to expect for next target for slowing down.
 						this.nextTargetIndex = switch (this.speed) {
-							case 3 -> this.getElementIndex(this.targetIndex - 3, 4);
-							case 2 -> this.getElementIndex(this.targetIndex - 1, 4);
+							case 4 -> this.getElementIndex(this.targetIndex + 2, 3);
+							case 3 -> this.getElementIndex(this.targetIndex + 1, 3);
 							default -> this.targetIndex;
 						};
 
@@ -177,7 +185,8 @@ public class GachaWheel implements Widget {
 						}
 					}
 				} else {
-					this.speed = (int) (TOP_SPEED - this.ticksTillSlowDown/3.0f);
+					// min value of 4 in case of lag, ensuring the last 4 stages should be precisely controlled
+					this.speed = Math.max(4, (int) (TOP_SPEED + this.ticksTillSlowDown/3.0f));
 				}
 			}
 
@@ -237,7 +246,7 @@ public class GachaWheel implements Widget {
 			this.afterRoll = afterRoll;
 			this.targetIndex = index;
 			this.nextTargetIndex = index;
-			this.ticksTillSlowDown = RANDOM.nextInt(20 * 7, 20 * 9);
+			this.ticksTillSlowDown = RANDOM.nextInt(20 * 4, 20 * 6);
 			return true;
 		}
 	}

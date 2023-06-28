@@ -127,11 +127,9 @@ public class RollOriginScreen extends Screen {
 		// play unlocked origin sound
 		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGacha.SOUND_UNLOCK_ORIGIN, 1.0F));
 
-		OriginDisplayScreen screen = new OriginDisplayScreen(Component.translatable("origins_gacha.screens.new_origin"), true);
-		screen.showOrigin(
+		NewOriginScreen screen = new NewOriginScreen(
 				OriginsAPI.getOriginsRegistry().getHolderOrThrow(origin),
-				OriginsAPI.getLayersRegistry().getHolderOrThrow(OriginsGacha.ORIGIN_LAYER),
-				false
+				OriginsAPI.getLayersRegistry().getHolderOrThrow(OriginsGacha.ORIGIN_LAYER)
 		);
 
 		this.minecraft.setScreen(screen);
