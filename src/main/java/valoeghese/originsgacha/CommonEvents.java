@@ -42,7 +42,7 @@ public class CommonEvents {
 	@SubscribeEvent
 	public static void onPlayerDeath(final LivingDeathEvent event) {
 		if (event.getEntity() instanceof ServerPlayer player) {
-			if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
+			if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled() && OriginsGachaConfig.CONFIG.resetCooldownOnDeath())
 			{
 				// reset cooldowns
 				IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(player);
