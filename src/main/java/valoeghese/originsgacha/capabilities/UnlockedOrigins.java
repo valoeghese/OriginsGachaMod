@@ -57,7 +57,14 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 			Registry<Origin> originRegistry = OriginsAPI.getOriginsRegistry(player.getServer());
 
 			var origins = new ArrayList<>(originRegistry.entrySet());
-			origins.removeIf(entry -> entry.getValue().isUnchoosable());
+			origins.removeIf(entry -> {
+				try {
+					return entry.getValue().isUnchoosable();
+				} catch (IllegalStateException e) {
+					return true;
+				}
+			});
+
 			Collections.shuffle(origins);
 
 			// Make sure there are actually enough origins for the mod to function

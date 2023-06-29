@@ -117,20 +117,25 @@ public class RollOriginScreen extends Screen {
 		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGacha.SOUND_ROLL_ORIGIN, 1.0F));
 
 		// roll the wheel to land on the given origin
-		Origin originInstance = OriginsAPI.getOriginsRegistry().get(origin);
+		try {
+			Origin originInstance = OriginsAPI.getOriginsRegistry().get(origin);
 
-		if (originInstance == null) {
-			// add chat message saying that error: the origin was not found
-			this.minecraft.gui.getChat().addMessage(Component.literal("Error: unlocked origin not found!"));
-			this.onClose();
-			return;
-		}
+			if (originInstance == null) {
+				// add chat message saying that error: the origin was not found
+				this.minecraft.gui.getChat().addMessage(Component.literal("Error: unlocked origin not found!"));
+				this.onClose();
+				return;
+			}
 
-		ItemStack stack = originInstance.getIcon();
+			ItemStack stack = originInstance.getIcon();
 
-		if (!this.wheel.roll(stack, () -> this.afterRoll(origin))) {
-			// add chat message saying that error: the wheel does not contain the unlocked origin
-			this.minecraft.gui.getChat().addMessage(Component.literal("Error: wheel does not contain the unlocked origin!"));
+			if (!this.wheel.roll(stack, () -> this.afterRoll(origin))) {
+				// add chat message saying that error: the wheel does not contain the unlocked origin
+				this.minecraft.gui.getChat().addMessage(Component.literal("Error: wheel does not contain the unlocked origin!"));
+				this.onClose();
+			}
+		} catch (IllegalStateException e) {
+			this.minecraft.gui.getChat().addMessage(Component.literal("Error: unlocked origin not present in registry!"));
 			this.onClose();
 		}
 	}
