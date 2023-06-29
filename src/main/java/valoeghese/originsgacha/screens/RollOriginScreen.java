@@ -53,9 +53,21 @@ public class RollOriginScreen extends Screen {
 	@Override
 	protected void init() {
 		final int wheelCentrePos = (2 * this.width / 3 - 100) / 2;
-		this.wheel = this.addRenderableOnly(new GachaWheel(this.itemRenderer, wheelCentrePos - 20, 0, 40, this.height));
 
-		this.initWheel();
+		// Create Wheel
+		GachaWheel wheel = new GachaWheel(this.itemRenderer, wheelCentrePos - 20, 0, 40, this.height);
+
+		if (this.wheel != null && this.wheel.isRolling()) {
+			wheel.copyFrom(this.wheel);
+		}
+
+		this.wheel = this.addRenderableOnly(wheel);
+
+		// if rolling, data has been copied
+		// if not, initialise the data.
+		if (!this.wheel.isRolling()) {
+			this.initWheel();
+		}
 
 		this.currentOrbs = this.orbsOfOrigin.getAsInt();
 
@@ -70,6 +82,7 @@ public class RollOriginScreen extends Screen {
 									.tooltip(Component.translatable("buttons.origins_gacha.roll.not_enough", this.requiredOrbs - this.currentOrbs, this.currentOrbs, this.requiredOrbs))
 									.disable()
 							)
+							.setupIf(this.wheel.isRolling(), ButtonBuilder::disable)
 							.action(bn -> {
 								// disable buttons
 								bn.active = false;
@@ -86,6 +99,7 @@ public class RollOriginScreen extends Screen {
 				new ButtonBuilder()
 						.position(2 * this.width / 3, this.height / 2 + 12)
 						.message(CommonComponents.GUI_CANCEL)
+						.setupIf(this.wheel.isRolling(), ButtonBuilder::disable)
 						.action(this::onClose)
 						.centered()
 						.build()

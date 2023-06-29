@@ -9,12 +9,15 @@ import io.github.apace100.origins.registry.ModItems;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
+import io.github.edwinmindcraft.origins.api.origin.OriginLayer;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -30,9 +33,9 @@ import valoeghese.originsgacha.capabilities.IUnlockedOriginData;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.network.NetworkManager;
 import valoeghese.originsgacha.network.packet.C2SSwitchOriginPacket;
-import valoeghese.originsgacha.util.VertexFormats;
 import valoeghese.originsgacha.util.Division;
 import valoeghese.originsgacha.util.Utils;
+import valoeghese.originsgacha.util.VertexFormats;
 
 import java.util.AbstractMap;
 import java.util.List;
@@ -81,6 +84,7 @@ public class OriginSelectScreen extends Screen {
 
 		this.requiredOrbsForNext = unlockedOrigins.getRequiredOrbsForNextRoll();
 		this.page = unlockedOrigins.getPage();
+		this.unlockedAllOrigins = this.hasUnlockedAllOrigins(unlockedOrigins);
 	}
 
 	private final AtomicBoolean canDisplay = new AtomicBoolean(true);
@@ -98,6 +102,7 @@ public class OriginSelectScreen extends Screen {
 	private final Origin currentOrigin;
 	private final List<? extends Map.Entry<IUnlockedOriginData, Origin>> availableOrigins;
 	private final int requiredOrbsForNext;
+	private final boolean unlockedAllOrigins;
 
 	private double page = 0;
 
@@ -206,9 +211,11 @@ public class OriginSelectScreen extends Screen {
 				Mth.floor(centreX/scale - 8),
 				Mth.floor(centreY/scale - 8));
 
-		final int orbOfOriginCount = this.getOrbOfOriginCount();
-		GuiComponent.drawCenteredString(guiStack, this.font, Component.literal(orbOfOriginCount + "/" + this.requiredOrbsForNext),
-				(int)(centreX/scale), (int)(centreY/scale + 8), 0xFFFFFF);
+		if (!this.unlockedAllOrigins) {
+			final int orbOfOriginCount = this.getOrbOfOriginCount();
+			GuiComponent.drawCenteredString(guiStack, this.font, Component.literal(orbOfOriginCount + "/" + this.requiredOrbsForNext),
+					(int) (centreX / scale), (int) (centreY / scale + 8), 0xFFFFFF);
+		}
 
 		stack.popPose();
 	}
@@ -393,6 +400,36 @@ public class OriginSelectScreen extends Screen {
 		} else {
 			this.page = Math.min(this.getLastPage(), this.page - delta);
 		}
+
+		return true;
+	}
+
+	/**
+	 * Compute whether all origins have been unlocked.
+	 * @param unlockedOrigins the container containing data on the player's unlocked origins.
+	 * @return whether all origins have been unlocked.
+	 */
+	private boolean hasUnlockedAllOrigins(IUnlockedOrigins unlockedOrigins) {
+		// add all not-yet-unlocked origins to the wheel
+		OriginLayer layer = OriginsAPI.getLayersRegistry().get(OriginsGacha.ORIGIN_LAYER);
+
+		if (layer == null) {
+			Minecraft.getInstance().setScreen(new ErrorScreen(
+					Component.translatable("screens.origins_gacha.no_origins_layer"),
+					Component.translatable("screens.origins_gacha.no_origins_layer.description")
+			));
+
+			return false;
+		}
+
+		// If only one origin exists that is choosable and not unlocked, we do not have all unlocked
+		for (Holder<Origin> origin : layer.origins()) {
+			if (origin.get().isChoosable()) {
+				if (!unlockedOrigins.hasOrigin(origin.unwrapKey().orElseThrow(() -> new IllegalStateException("Origin has no key!")))) {
+					return false;
+				}
+			}
+		};
 
 		return true;
 	}

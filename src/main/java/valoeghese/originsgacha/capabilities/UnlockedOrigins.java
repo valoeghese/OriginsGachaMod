@@ -297,7 +297,7 @@ public class UnlockedOrigins implements IUnlockedOrigins, ICapabilitySerializabl
 			data.putString("origin", this.origin.location().toString());
 
 			long ticksRemaining = this.unlockTimeTicks - UnlockedOrigins.this.getGameTime();
-			data.putLong("ticksRemaining", ticksRemaining);
+			data.putLong("ticksRemaining", Math.max(0, ticksRemaining));
 
 			return data;
 		}
