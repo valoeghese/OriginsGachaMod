@@ -19,6 +19,7 @@ import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import valoeghese.originsgacha.OriginsGacha;
+import valoeghese.originsgacha.OriginsGachaSounds;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.network.NetworkManager;
 import valoeghese.originsgacha.network.packet.C2SRollOriginPacket;
@@ -114,7 +115,7 @@ public class RollOriginScreen extends Screen {
 		assert this.minecraft != null : "We must be initialised";
 
 		// play rolling origin sound
-		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGacha.SOUND_ROLL_ORIGIN, 1.0F));
+		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGachaSounds.ROLL_ORIGIN.get(), 1.0F));
 
 		// roll the wheel to land on the given origin
 		try {
@@ -144,7 +145,7 @@ public class RollOriginScreen extends Screen {
 		assert this.minecraft != null : "We must be initialised";
 
 		// play unlocked origin sound
-		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGacha.SOUND_UNLOCK_ORIGIN, 1.0F));
+		this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(OriginsGachaSounds.UNLOCK_ORIGIN.get(), 1.0F));
 
 		NewOriginScreen screen = new NewOriginScreen(
 				OriginsAPI.getOriginsRegistry().getHolderOrThrow(origin),

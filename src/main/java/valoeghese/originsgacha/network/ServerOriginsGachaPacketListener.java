@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import valoeghese.originsgacha.OriginsGacha;
 import valoeghese.originsgacha.OriginsGachaConfig;
+import valoeghese.originsgacha.OriginsGachaSounds;
 import valoeghese.originsgacha.capabilities.IUnlockedOriginData;
 import valoeghese.originsgacha.capabilities.IUnlockedOrigins;
 import valoeghese.originsgacha.network.packet.C2SRollOriginPacket;
@@ -27,8 +28,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
-
-import static valoeghese.originsgacha.OriginsGacha.SOUND_SWITCH_ORIGIN;
 
 /**
  * Like {@link net.minecraft.network.protocol.game.ServerGamePacketListener} but for this mod.
@@ -104,7 +103,7 @@ public final class ServerOriginsGachaPacketListener {
 						player.getLevel().playSound(
 								null,
 								player.getX(), player.getY(), player.getZ(),
-								SOUND_SWITCH_ORIGIN, SoundSource.PLAYERS,
+								OriginsGachaSounds.SWITCH_ORIGIN.get(), SoundSource.PLAYERS,
 								1.0f, 1.0f);
 
 						// update cooldown time (will automatically sync to client)

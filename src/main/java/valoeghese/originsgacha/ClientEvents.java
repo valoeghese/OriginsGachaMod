@@ -86,9 +86,10 @@ public class ClientEvents {
 	public static class ClientModEvents {
 		@SubscribeEvent
 		public static void onRegisterKeyMappings(final RegisterKeyMappingsEvent event) {
+			LOGGER.info("Registering Origins Gacha Keybinds");
+
 			if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
 			{
-				LOGGER.info("Registering Origins Gacha Keybinds");
 				event.register(SELECT_ORIGIN);
 			}
 		}

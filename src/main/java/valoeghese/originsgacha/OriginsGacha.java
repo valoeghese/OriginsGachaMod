@@ -27,6 +27,7 @@ public class OriginsGacha
 
         // Register core events.
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        OriginsGachaSounds.register(FMLJavaModLoadingContext.get().getModEventBus());
     }
 
     private void setup(final FMLCommonSetupEvent event) {
@@ -52,13 +53,6 @@ public class OriginsGacha
             new ResourceLocation("origins", "origin")
     );
 
-    /**
-     * The sound for switching origin.
-     */
-    public static final SoundEvent SOUND_SWITCH_ORIGIN = new SoundEvent(new ResourceLocation("origins_gacha", "actions.switch_origin"));
-    public static final SoundEvent SOUND_ROLL_ORIGIN = new SoundEvent(new ResourceLocation("origins_gacha", "actions.rolling_origin"));
-    public static final SoundEvent SOUND_UNLOCK_ORIGIN = new SoundEvent(new ResourceLocation("origins_gacha", "events.receive_rolled_origin"));
-
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -66,6 +60,10 @@ public class OriginsGacha
      * Feature flags for Origins Gacha. Edit these to enable or disable features of the mod.
      */
     public enum FeatureFlags {
+        /**
+         * Extensions and fixes to the base origins mod.
+         */
+        ORIGINS_EXTENSIONS(true),
         /**
          * Whether preventing players from equipping the elytra should be enabled.
          */

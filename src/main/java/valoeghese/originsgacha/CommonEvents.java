@@ -1,8 +1,12 @@
 package valoeghese.originsgacha;
 
+import io.github.edwinmindcraft.origins.api.capabilities.IOriginContainer;
+import net.minecraft.client.resources.sounds.SoundEventRegistration;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -71,10 +75,18 @@ public class CommonEvents {
 
 	@SubscribeEvent
 	public static void onPlayerChangeWorld(final PlayerEvent.PlayerChangedDimensionEvent event) {
-		if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
+		if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled() || OriginsGacha.FeatureFlags.ORIGINS_EXTENSIONS.isEnabled())
 		{
 			if (event.getEntity() instanceof ServerPlayer player) {
-				IUnlockedOrigins.getUnlockedOrigins(player).sync();
+				if (OriginsGacha.FeatureFlags.ORIGIN_GACHA.isEnabled())
+				{
+					IUnlockedOrigins.getUnlockedOrigins(player).sync();
+				}
+
+				if (OriginsGacha.FeatureFlags.ORIGINS_EXTENSIONS.isEnabled())
+				{
+					IOriginContainer.get(player).ifPresent(IOriginContainer::synchronize);
+				}
 			}
 		}
 	}
