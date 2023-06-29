@@ -1,14 +1,9 @@
 package valoeghese.originsgacha.network.packet;
 
-import io.github.edwinmindcraft.origins.api.origin.Origin;
-import io.github.edwinmindcraft.origins.api.registry.OriginsDynamicRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceKey;
 import net.minecraftforge.network.NetworkDirection;
 import org.jetbrains.annotations.Nullable;
-import valoeghese.originsgacha.capabilities.UnlockedOrigins;
 
 import java.util.LinkedList;
 import java.util.List;

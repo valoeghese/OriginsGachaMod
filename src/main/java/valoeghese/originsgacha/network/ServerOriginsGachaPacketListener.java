@@ -40,7 +40,7 @@ public final class ServerOriginsGachaPacketListener {
 	public static void onRoll(C2SRollOriginPacket packet, NetworkEvent.Context context) {
 		LOGGER.info("Received " + packet);
 
-		Minecraft.getInstance().tell(() -> {
+		context.enqueueWork(() -> {
 			// ensure the player has enough orbs of origin
 			ServerPlayer player = context.getSender();
 			IUnlockedOrigins unlockedOrigins = IUnlockedOrigins.getUnlockedOrigins(Objects.requireNonNull(player));
@@ -99,7 +99,7 @@ public final class ServerOriginsGachaPacketListener {
 				ResourceKey<Origin> currentOrigin = originContainer.getOrigin(OriginsGacha.ORIGIN_LAYER);
 
 				if (!currentOrigin.equals(packet.getOrigin())) {
-					Minecraft.getInstance().tell(() -> {
+					context.enqueueWork(() -> {
 						// play cool sound
 						player.getLevel().playSound(
 								null,
