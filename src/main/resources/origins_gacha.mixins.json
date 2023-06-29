@@ -2,7 +2,7 @@
   "required": true,
   "package": "valoeghese.originsgacha.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "examplemod.refmap.json",
+  "refmap": "origins_gacha.refmap.json",
   "mixins": [
     "equip.AbstractContainerMenuMixin",
     "equip.ArmourItemMixin",
